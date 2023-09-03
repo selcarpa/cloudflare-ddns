@@ -3,6 +3,7 @@ package model.request
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable
 class CloudflareBody<D> {
     var errors: List<String> = listOf()
     var messages: List<String> = listOf()
@@ -14,6 +15,7 @@ class CloudflareBody<D> {
 
 }
 
+@Serializable
 class ResultInfo {
     var count: Int = 0
     var page: Int = 0
@@ -29,6 +31,7 @@ class ResultInfo {
 
 }
 
+@Serializable
 data class DnsRecord(
     var id: String = "",
     var type: String = "",

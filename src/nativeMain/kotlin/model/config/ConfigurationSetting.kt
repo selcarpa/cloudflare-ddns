@@ -24,7 +24,6 @@ object Config {
     var ConfigurationUrl: String? = null
     val Configuration: ConfigurationSetting by lazy { initConfiguration() }
 
-    @Suppress("SENSELESS_COMPARISON")
     private fun initConfiguration(): ConfigurationSetting {
         val configurationSetting = if (ConfigurationUrl.orEmpty().isEmpty()) {
             TODO("Kotlin native not support read resource file, please use -c=xxx to specify configuration file")
@@ -46,7 +45,7 @@ object Config {
         }
 
         configurationSetting.domains.forEach {
-            if (it.properties == null) {// after serialization, properties will be null in some case
+            if (it.properties == null) {
                 it.properties = configurationSetting.common
             } else {
                 it.properties = propertiesCover(it.properties, configurationSetting.common)
@@ -56,53 +55,43 @@ object Config {
         return configurationSetting
     }
 
-    @Suppress("USELESS_ELVIS")
-    private fun propertiesCover(properties: Properties, common: Properties): Properties {
+    private fun propertiesCover(properties: Properties?, common: Properties): Properties {
         return Properties(//after serialization, properties will be null in some case
-            zoneId = properties.zoneId ?: common.zoneId,
-            authKey = properties.authKey ?: common.authKey,
-            checkUrlv4 = properties.checkUrlv4 ?: common.checkUrlv4,
-            checkUrlv6 = properties.checkUrlv6 ?: common.checkUrlv6,
-            v4 = properties.v4 ?: common.v4,
-            v6 = properties.v6 ?: common.v6,
-            ttl = properties.ttl ?: common.ttl,
-            autoPurge = properties.autoPurge ?: common.autoPurge
+            zoneId = properties?.zoneId ?: common.zoneId!!,
+            authKey = properties?.authKey ?: common.authKey!!,
+            checkUrlv4 = properties?.checkUrlv4 ?: common.checkUrlv4!!,
+            checkUrlv6 = properties?.checkUrlv6 ?: common.checkUrlv6!!,
+            v4 = properties?.v4 ?: common.v4!!,
+            v6 = properties?.v6 ?: common.v6!!,
+            ttl = properties?.ttl ?: common.ttl!!,
+            autoPurge = properties?.autoPurge ?: common.autoPurge
         )
     }
 }
 
 @Serializable
 data class Properties(
-    val zoneId: String,
-    val authKey: String,
-    val checkUrlv4: String,
-    val checkUrlv6: String,
-    val v4: Boolean,
-    val v6: Boolean,
-    val ttl: Int,
-    val autoPurge: Boolean
+    val zoneId: String?,
+    val authKey: String?,
+    val checkUrlv4: String?,
+    val checkUrlv6: String?,
+    val v4: Boolean?,
+    val v6: Boolean?,
+    var ttl: Int?,
+    var autoPurge: Boolean? = false
 )
 
 @Serializable
 data class ConfigurationSetting(
     var domains: List<Domain> = emptyList(),
-    var common: Properties = Properties(
-        zoneId = "",
-        authKey = "",
-        checkUrlv4 = "https://w4.tain.one",
-        checkUrlv6 = "https://w6.tain.one",
-        v4 = true,
-        v6 = false,
-        ttl = 600,
-        autoPurge = false
-    )
+    var common: Properties
 )
 
 @Serializable
 data class Domain(
     val name: String,
     var proxied: Boolean = false,
-    var properties: Properties,
+    var properties: Properties?,
 )
 
 
