@@ -9,27 +9,20 @@ class CloudflareBody<D> {
     var messages: List<String> = listOf()
     var result: List<D> = listOf()
     var success: Boolean = false
-
     @SerialName("result_info")
     var resultInfo: ResultInfo? = null
 
 }
 
 @Serializable
-class ResultInfo {
-    var count: Int = 0
-    var page: Int = 0
+data class ResultInfo(
+    var count: Int = 0,
+    var page: Int = 0,
+    @SerialName("per_page") var perPage: Int = 0,
+    @SerialName("total_count") var totalCount: Int = 0,
+    @SerialName("total_pages") var totalPages: Int = 0,
+)
 
-    @SerialName("per_page")
-    var perPage: Int = 0
-
-    @SerialName("total_count")
-    var totalCount: Int = 0
-
-    @SerialName("total_pages")
-    var totalPages: Int = 0
-
-}
 
 @Serializable
 data class DnsRecord(

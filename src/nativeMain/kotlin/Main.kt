@@ -21,7 +21,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 
-private val json = Json
+private val json = Json {
+    ignoreUnknownKeys = true
+}
 private val logger = KotlinLogging.logger {}
 private val client = HttpClient(CIO) {
     install(ContentNegotiation) {
@@ -211,7 +213,7 @@ private suspend fun DdnsItem.init(): Boolean {
 
 private fun DdnsItem.authHeader(): Map<String, String> {
     return mapOf(
-        Pair("Authorization","Bearer ${this.domain.properties!!.authKey!!}")
+        Pair("Authorization", "Bearer ${this.domain.properties!!.authKey!!}")
     )
 }
 
