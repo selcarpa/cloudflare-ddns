@@ -49,7 +49,7 @@ kotlin {
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz:tomlkt:0.2.0")
                 implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
-                implementation("io.ktor:ktor-client-logging-jvm:2.3.3")
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
