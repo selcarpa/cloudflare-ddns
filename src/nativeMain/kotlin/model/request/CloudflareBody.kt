@@ -7,8 +7,9 @@ import kotlinx.serialization.Serializable
 class CloudflareBody<D> {
     var errors: List<String> = listOf()
     var messages: List<String> = listOf()
-    var result: List<D> = listOf()
+    var result: D? = null
     var success: Boolean = false
+
     @SerialName("result_info")
     var resultInfo: ResultInfo? = null
 
