@@ -1,7 +1,6 @@
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -25,7 +24,7 @@ private val json = Json {
     ignoreUnknownKeys = true
 }
 private val logger = KotlinLogging.logger {}
-private val client = HttpClient(CIO) {
+private val client = HttpClient {
     install(ContentNegotiation) {
         json(json)
     }
