@@ -3,6 +3,7 @@ package model.config
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.tomlkt.Toml
 import okio.Path.Companion.toPath
 import utils.readFile
@@ -19,6 +20,9 @@ private val json = Json {
 private val toml = Toml {
     ignoreUnknownKeys = true
 }
+private val yaml = Yaml {
+
+}
 
 object Config {
     var ConfigurationUrl: String? = null
@@ -30,12 +34,22 @@ object Config {
         } else {
             try {
                 val content = readFile(ConfigurationUrl!!.toPath())
-                if (ConfigurationUrl!!.endsWith("json") || ConfigurationUrl!!.endsWith("json5")) {
-                    json.decodeFromString<ConfigurationSetting>(content)
-                } else if (ConfigurationUrl!!.endsWith("toml")) {
-                    toml.decodeFromString(ConfigurationSetting.serializer(), content)
-                } else {
-                    throw IllegalArgumentException("not supported file type")
+                when {
+                    ConfigurationUrl!!.endsWith("json") || ConfigurationUrl!!.endsWith("json5") -> {
+                        json.decodeFromString<ConfigurationSetting>(content)
+                    }
+
+                    ConfigurationUrl!!.endsWith("toml") -> {
+                        toml.decodeFromString(ConfigurationSetting.serializer(), content)
+                    }
+
+                    ConfigurationUrl!!.endsWith("yml") || ConfigurationUrl!!.endsWith("yaml") -> {
+                        yaml.decodeFromString(ConfigurationSetting.serializer(), content)
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("not supported file type")
+                    }
                 }
             } catch (ex: Exception) {
                 print("load configuration failed: ${ex.message}")
@@ -56,7 +70,7 @@ object Config {
     }
 
     private fun propertiesCover(properties: Properties?, common: Properties): Properties {
-        return Properties(//after serialization, properties will be null in some case
+        return Properties(
             zoneId = properties?.zoneId ?: common.zoneId!!,
             authKey = properties?.authKey ?: common.authKey!!,
             checkUrlv4 = properties?.checkUrlv4 ?: common.checkUrlv4!!,
@@ -64,7 +78,8 @@ object Config {
             v4 = properties?.v4 ?: common.v4!!,
             v6 = properties?.v6 ?: common.v6!!,
             ttl = properties?.ttl ?: common.ttl!!,
-            autoPurge = properties?.autoPurge ?: common.autoPurge
+            autoPurge = properties?.autoPurge ?: common.autoPurge,
+            proxied = properties?.proxied ?: common.proxied
         )
     }
 }
@@ -78,7 +93,8 @@ data class Properties(
     val v4: Boolean?,
     val v6: Boolean?,
     var ttl: Int?,
-    var autoPurge: Boolean? = false
+    var autoPurge: Boolean? = false,
+    var proxied: Boolean? = false
 )
 
 @Serializable

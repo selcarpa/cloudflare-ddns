@@ -3,6 +3,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -29,6 +30,11 @@ private val client = HttpClient(CIO) {
     install(ContentNegotiation) {
         json(json)
     }
+    install(Logging) {
+        logger = Logger.DEFAULT
+        level = LogLevel.BODY
+        sanitizeHeader { header -> header == HttpHeaders.Authorization }
+    }
 }
 
 
@@ -48,39 +54,43 @@ fun main(args: Array<String>) = runBlocking {
     ddnsItems.groupBy {
         it.domain.properties!!.ttl
     }.forEach { (ttl, d) ->
-        d.groupBy {
-            it.domain.properties!!.checkUrlv4
-        }.forEach {
-            delayCall(ttl!!.seconds) {
-                ddns(it.value) {
-                    getIp(it.key!!)
+        d.filter { it.domain.properties?.v4 ?: false }
+            .groupBy {
+                it.domain.properties!!.checkUrlv4
+            }.forEach {
+                delayCall(ttl!!.seconds) {
+                    ddns(it.value) {
+                        getIp(it.key!!)
+                    }
                 }
             }
-        }
-        d.groupBy {
-            it.domain.properties!!.checkUrlv6
-        }.forEach {
-            delayCall(ttl!!.seconds) {
-                ddns(it.value) {
-                    getIp(it.key!!)
+        d.filter { it.domain.properties?.v6 ?: false }
+            .groupBy {
+                it.domain.properties!!.checkUrlv6
+            }.forEach {
+                delayCall(ttl!!.seconds) {
+                    ddns(it.value) {
+                        getIp(it.key!!)
+                    }
                 }
             }
-        }
     }
 
 }
 
 fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
-    exec()
-    delay(duration)
+    while (true) {
+        exec()
+        delay(duration)
+    }
 }
 
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
 
-    val ipv4 = ipSupplier()
+    val ip = ipSupplier()
 
     ddnsItems.forEach {
-        it.run(ipv4)
+        it.run(ip)
     }
 }
 
@@ -121,10 +131,12 @@ private fun DdnsItem.run(ip: String) = runBlocking {
             return@runBlocking
         }
 
+        logger.info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
         updateDns(ip, this@run, true)
         return@runBlocking
     }
 
+    logger.info { "create ${this@run.domain.name} with ${this@run.type.name} $ip" }
     updateDns(ip, this@run)
 }
 
@@ -139,14 +151,25 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     ) {
         setBody(
             json.encodeToString(
-                UpdateDnsRecordRequest(
-                    type = ddnsItem.type.name!!,
-                    name = ddnsItem.domain.name,
-                    content = ip,
-                    ttl = ddnsItem.ttl!!,
-                    proxied = ddnsItem.proxied!!,
-                    tags = emptyList()
-                )
+                if (update) {
+                    UpdateDnsRecordRequest(
+                        type = ddnsItem.type.name!!,
+                        name = ddnsItem.domain.name,
+                        content = ip,
+                        ttl = ddnsItem.ttl!!,
+                        proxied = ddnsItem.proxied!!,
+                        tags = emptyList()
+                    )
+                } else {
+                    UpdateDnsRecordRequest(
+                        type = ddnsItem.type.name!!,
+                        name = ddnsItem.domain.name,
+                        content = ip,
+                        ttl = ddnsItem.domain.properties!!.ttl!!,
+                        proxied = ddnsItem.domain.properties!!.proxied!!,
+                        tags = emptyList()
+                    )
+                }
             )
         )
         headers {
@@ -164,6 +187,12 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     if (!cloudflareBody.success) {
         logger.error { cloudflareBody.errors }
     }
+    if (update) {
+        logger.info { "updated ${ddnsItem.domain.name} to $ip successful" }
+    } else {
+        logger.info { "created ${ddnsItem.domain.name} with $ip successful" }
+    }
+    ddnsItem.init(cloudflareBody.result!!)
 }
 
 private suspend fun DdnsItem.init(): Boolean {
@@ -175,40 +204,42 @@ private suspend fun DdnsItem.init(): Boolean {
                     append(it.key, it.value)
                 }
             }
-            parameters {
-                append(
+            url {
+                parameters.append(
                     "name",
                     this@init.domain.name,
                 )
                 this@init.type.name?.let {
-                    append(
+                    parameters.append(
                         "type", it
                     )
                 }
             }
-
-
         }
 
-    val cloudflareBody = dnsRecords.body<CloudflareBody<DnsRecord>>()
+    val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
         logger.error { cloudflareBody.errors }
-        logger.error { "init information error. try after ${this.domain.properties!!.ttl}" }
+        logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
         false
-    } else if (cloudflareBody.result.isNotEmpty()) {
-        logger.debug { cloudflareBody.result }
-        this.ttl = cloudflareBody.result.first().ttl
-        this.proxied = cloudflareBody.result.first().proxied
-        this.content = cloudflareBody.result.first().content
-        this.id = cloudflareBody.result.first().id
-        this.inited = true
+    } else if (cloudflareBody.result!!.isNotEmpty()) {
+        init(cloudflareBody.result!!.first())
         true
     } else {
-        logger.info { "no exists record found" }
+        logger.info { "no ${this@init.type.name} exists record found for ${this@init.domain.name}" }
         this.exists = false
         true
     }
 
+}
+
+private fun DdnsItem.init(dnsRecord: DnsRecord) {
+    logger.debug { dnsRecord }
+    this.ttl = dnsRecord.ttl
+    this.proxied = dnsRecord.proxied
+    this.content = dnsRecord.content
+    this.id = dnsRecord.id
+    this.inited = true
 }
 
 private fun DdnsItem.authHeader(): Map<String, String> {

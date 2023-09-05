@@ -32,6 +32,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("com.squareup.okio:okio:$okio_version")
     implementation("net.peanuuutz:tomlkt:0.2.0")
+    implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
     implementation("org.slf4j:slf4j-simple:1.7.36")
     implementation("io.ktor:ktor-client-logging-jvm:2.3.3")
