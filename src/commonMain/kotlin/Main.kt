@@ -1,4 +1,3 @@
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -24,7 +23,6 @@ import kotlin.time.Duration.Companion.seconds
 private val json = Json {
     ignoreUnknownKeys = true
 }
-private val logger = KotlinLogging.logger {}
 private val client = HttpClient {
     install(ContentNegotiation) {
         json(json)
