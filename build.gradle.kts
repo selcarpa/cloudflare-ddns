@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
+import org.jetbrains.kotlin.gradle.*
 
 val ktor_version: String by project
 val kotlin_version: String by project
@@ -18,9 +19,9 @@ repositories {
     google()
 }
 
-
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
-
+    targetHierarchy.default()
     fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}) {
         binaries {
             executable {
@@ -30,30 +31,28 @@ kotlin {
         }
     }
 
-    linuxX64 {
+    linuxX64("linuxX64") {
         config()
     }
 //    linuxArm64 {
 //        config()
 //    }
-
-
+//    jvm {}
     sourceSets {
-        linuxX64 {
-            dependencies {
-                implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
-            }
-        }
+
 //        linuxArm64 {
 //            dependencies {
 //                implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
+//                implementation("io.ktor:ktor-client-curl:$ktor_version")
 //            }
 //        }
+//        jvm{
+//
+//        }
 
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
-                implementation("io.ktor:ktor-client-curl:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
@@ -61,6 +60,13 @@ kotlin {
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz:tomlkt:0.2.0")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
+            }
+        }
+
+        val linuxX64 by creating {
+            dependencies {
+                implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
+                implementation("io.ktor:ktor-client-curl:$ktor_version")
             }
         }
 
