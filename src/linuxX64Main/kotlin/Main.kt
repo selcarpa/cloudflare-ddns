@@ -87,6 +87,7 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
 
     val ip = ipSupplier()
+    logger.debug { "get ip: $ip" }
 
     ddnsItems.forEach {
         it.run(ip)
@@ -152,7 +153,7 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
             json.encodeToString(
                 if (update) {
                     UpdateDnsRecordRequest(
-                        type = ddnsItem.type.name!!,
+                        type = ddnsItem.type.name,
                         name = ddnsItem.domain.name,
                         content = ip,
                         ttl = ddnsItem.ttl!!,
@@ -161,7 +162,7 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                     )
                 } else {
                     UpdateDnsRecordRequest(
-                        type = ddnsItem.type.name!!,
+                        type = ddnsItem.type.name,
                         name = ddnsItem.domain.name,
                         content = ip,
                         ttl = ddnsItem.domain.properties!!.ttl!!,
@@ -261,15 +262,4 @@ data class DdnsItem(
     var content: String = ""
 }
 
-class TYPE(val value: Int, val name: String?) {
-
-    companion object {
-        val A = TYPE(1, "A")
-        val AAAA = TYPE(28, "AAAA")
-
-    }
-
-    override fun toString(): String {
-        return "TYPE(value=$value, name='${name ?: "UNKNOWN"}}')"
-    }
-}
+enum class TYPE { A, AAAA }
