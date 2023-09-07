@@ -31,24 +31,16 @@ kotlin {
         }
     }
 
-    linuxX64("linuxX64") {
+    linuxX64 {
         config()
     }
-//    linuxArm64 {
-//        config()
-//    }
-//    jvm {}
+    linuxArm64 {
+        config()
+    }
+    jvm {}
     sourceSets {
 
-//        linuxArm64 {
-//            dependencies {
-//                implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
-//                implementation("io.ktor:ktor-client-curl:$ktor_version")
-//            }
-//        }
-//        jvm{
-//
-//        }
+
 
         val commonMain by getting {
             dependencies {
@@ -63,12 +55,26 @@ kotlin {
             }
         }
 
-        val linuxX64 by creating {
+        val linuxX64Main by getting {
             dependencies {
                 implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
                 implementation("io.ktor:ktor-client-curl:$ktor_version")
             }
         }
+
+        val linuxArm64Main by getting {
+            dependencies {
+                implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
+                implementation("io.ktor:ktor-client-curl:$ktor_version")
+            }
+        }
+        val jvmMain by getting{
+            dependencies{
+                implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
+                implementation("io.ktor:ktor-client-cio:$ktor_version")
+            }
+        }
+
 
     }
 }
