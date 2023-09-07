@@ -39,9 +39,6 @@ kotlin {
     }
     jvm {}
     sourceSets {
-
-
-
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -51,7 +48,6 @@ kotlin {
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz:tomlkt:0.2.0")
-                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
@@ -59,6 +55,7 @@ kotlin {
             dependencies {
                 implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
                 implementation("io.ktor:ktor-client-curl:$ktor_version")
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
@@ -66,15 +63,17 @@ kotlin {
             dependencies {
                 implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
                 implementation("io.ktor:ktor-client-curl:$ktor_version")
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
         val jvmMain by getting{
             dependencies{
                 implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
+                implementation("org.slf4j:slf4j-simple:1.7.36")
+                implementation("io.ktor:ktor-client-logging-jvm:2.3.3")
             }
         }
-
 
     }
 }
