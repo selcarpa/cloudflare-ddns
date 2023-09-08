@@ -209,7 +209,7 @@ private suspend fun DdnsItem.init(): Boolean {
                     "name",
                     this@init.domain.name,
                 )
-                this@init.type.name?.let {
+                this@init.type.name.let {
                     parameters.append(
                         "type", it
                     )
