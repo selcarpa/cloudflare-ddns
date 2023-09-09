@@ -1,8 +1,8 @@
-import io.github.oshai.kotlinlogging.KotlinLogging
+
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -20,21 +20,29 @@ import model.request.UpdateDnsRecordRequest
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+expect fun info(message: () -> Any?)
 
-private val logger = KotlinLogging.logger {}
+expect fun warn(message: () -> Any?)
+
+expect fun error(message: () -> Any?)
+
+expect fun debug(message: () -> Any?)
+
+
+
 private val json = Json {
     ignoreUnknownKeys = true
 }
+
+
 private val client = HttpClient {
     install(ContentNegotiation) {
         json(json)
     }
-    install(Logging) {
-        logger = Logger.DEFAULT
-        level = LogLevel.BODY
-        sanitizeHeader { header -> header == HttpHeaders.Authorization }
-    }
+   this.initLogging()
 }
+
+expect fun <T : HttpClientEngineConfig> HttpClientConfig<T>.initLogging()
 
 
 fun main(args: Array<String>) = runBlocking {
@@ -44,7 +52,7 @@ fun main(args: Array<String>) = runBlocking {
         }
     }
 
-    logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
+    info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
     val ddnsItems = Configuration.domains.map {
         it.toDDnsItems()
@@ -87,7 +95,7 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
 
     val ip = ipSupplier()
-    logger.debug { "get ip: $ip" }
+    debug { "get ip: $ip" }
 
     ddnsItems.forEach {
         it.run(ip)
@@ -96,7 +104,7 @@ private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = 
 
 suspend fun getIp(checkApi: String): String {
     val response = client.get(checkApi)
-    logger.debug { response }
+    debug { response }
     return response.bodyAsText()
 }
 
@@ -127,16 +135,16 @@ private fun DdnsItem.run(ip: String) = runBlocking {
 
     if (this@run.exists) {
         if (ip == this@run.content) {
-            logger.debug { "${this@run.domain} already been resolve to $ip" }
+            debug { "${this@run.domain} already been resolve to $ip" }
             return@runBlocking
         }
 
-        logger.info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
+        info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
         updateDns(ip, this@run, true)
         return@runBlocking
     }
 
-    logger.info { "create ${this@run.domain.name} with ${this@run.type.name} $ip" }
+    info { "create ${this@run.domain.name} with ${this@run.type.name} $ip" }
     updateDns(ip, this@run)
 }
 
@@ -185,12 +193,12 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     }
     val cloudflareBody = httpResponse.body<CloudflareBody<DnsRecord>>()
     if (!cloudflareBody.success) {
-        logger.error { cloudflareBody.errors }
+        error { cloudflareBody.errors }
     }
     if (update) {
-        logger.info { "updated ${ddnsItem.domain.name} to $ip successful" }
+        info { "updated ${ddnsItem.domain.name} to $ip successful" }
     } else {
-        logger.info { "created ${ddnsItem.domain.name} with $ip successful" }
+        info { "created ${ddnsItem.domain.name} with $ip successful" }
     }
     ddnsItem.init(cloudflareBody.result!!)
 }
@@ -219,14 +227,14 @@ private suspend fun DdnsItem.init(): Boolean {
 
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
-        logger.error { cloudflareBody.errors }
-        logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
+       error { cloudflareBody.errors }
+        warn { "init information error. try after ${this.domain.properties!!.ttl}" }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {
         init(cloudflareBody.result!!.first())
         true
     } else {
-        logger.info { "no ${this@init.type.name} exists record found for ${this@init.domain.name}" }
+        info { "no ${this@init.type.name} exists record found for ${this@init.domain.name}" }
         this.exists = false
         true
     }
@@ -234,7 +242,7 @@ private suspend fun DdnsItem.init(): Boolean {
 }
 
 private fun DdnsItem.init(dnsRecord: DnsRecord) {
-    logger.debug { dnsRecord }
+    debug { dnsRecord }
     this.ttl = dnsRecord.ttl
     this.proxied = dnsRecord.proxied
     this.content = dnsRecord.content
@@ -263,3 +271,4 @@ data class DdnsItem(
 }
 
 enum class TYPE { A, AAAA }
+
