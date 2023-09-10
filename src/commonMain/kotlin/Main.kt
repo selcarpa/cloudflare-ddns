@@ -1,4 +1,3 @@
-
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -29,28 +28,43 @@ expect fun error(message: () -> Any?)
 expect fun debug(message: () -> Any?)
 
 
-
 private val json = Json {
     ignoreUnknownKeys = true
 }
 
+private var debug = false
 
-private val client = HttpClient {
-    install(ContentNegotiation) {
-        json(json)
+
+private val client by lazy {
+    HttpClient {
+        install(ContentNegotiation) {
+            json(json)
+        }
+        if (debug) {
+            this.initLogging()
+        }
     }
-   this.initLogging()
 }
 
 expect fun <T : HttpClientEngineConfig> HttpClientConfig<T>.initLogging()
 
+expect fun debugLogSet()
+
 
 fun main(args: Array<String>) = runBlocking {
     args.forEach {
+        println(it)
         if (it.startsWith("-c=")) {
             ConfigurationUrl = it.replace("-c=", "")
         }
+        debugLogSet()
+        if (it == "--debug") {
+            debug = true
+            debugLogSet()
+        }
     }
+
+    debug { "debug-mode online" }
 
     info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
@@ -227,7 +241,7 @@ private suspend fun DdnsItem.init(): Boolean {
 
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
-       error { cloudflareBody.errors }
+        error { cloudflareBody.errors }
         warn { "init information error. try after ${this.domain.properties!!.ttl}" }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {

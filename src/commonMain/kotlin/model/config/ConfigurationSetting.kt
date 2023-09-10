@@ -7,7 +7,6 @@ import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.tomlkt.Toml
 import okio.Path.Companion.toPath
 import utils.readFile
-import kotlin.system.exitProcess
 
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -23,39 +22,34 @@ private val toml = Toml {
 private val yaml = Yaml {
 
 }
-
+expect fun loadFromResource(json: Json, toml: Toml, yaml: Yaml): ConfigurationSetting
 object Config {
     var ConfigurationUrl: String? = null
     val Configuration: ConfigurationSetting by lazy { initConfiguration() }
 
     private fun initConfiguration(): ConfigurationSetting {
         val configurationSetting = if (ConfigurationUrl.orEmpty().isEmpty()) {
-            TODO("Kotlin native not support read resource file, please use -c=xxx to specify configuration file")
+            loadFromResource(json, toml, yaml)
         } else {
-            try {
-                val content = readFile(ConfigurationUrl!!.toPath())
-                when {
-                    ConfigurationUrl!!.endsWith("json") || ConfigurationUrl!!.endsWith("json5") -> {
-                        json.decodeFromString<ConfigurationSetting>(content)
-                    }
-
-                    ConfigurationUrl!!.endsWith("toml") -> {
-                        toml.decodeFromString(ConfigurationSetting.serializer(), content)
-                    }
-
-                    ConfigurationUrl!!.endsWith("yml") || ConfigurationUrl!!.endsWith("yaml") -> {
-                        yaml.decodeFromString(ConfigurationSetting.serializer(), content)
-                    }
-
-                    else -> {
-                        throw IllegalArgumentException("not supported file type")
-                    }
+            val content = readFile(ConfigurationUrl!!.toPath())
+            when {
+                ConfigurationUrl!!.endsWith("json") || ConfigurationUrl!!.endsWith("json5") -> {
+                    json.decodeFromString<ConfigurationSetting>(content)
                 }
-            } catch (ex: Exception) {
-                print("load configuration failed: ${ex.message}")
-                ex.printStackTrace()
-                exitProcess(1)
+
+                ConfigurationUrl!!.endsWith("toml") -> {
+                    toml.decodeFromString(ConfigurationSetting.serializer(), content)
+                }
+
+                ConfigurationUrl!!.endsWith("yml") || ConfigurationUrl!!.endsWith("yaml") -> {
+                    yaml.decodeFromString(ConfigurationSetting.serializer(), content)
+                }
+
+                else -> {
+                    throw IllegalArgumentException("not supported file type")
+                }
             }
+
         }
 
         configurationSetting.domains.forEach {
@@ -68,6 +62,8 @@ object Config {
 
         return configurationSetting
     }
+
+
 
     private fun propertiesCover(properties: Properties?, common: Properties): Properties {
         return Properties(

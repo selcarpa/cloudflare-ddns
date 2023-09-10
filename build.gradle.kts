@@ -37,7 +37,18 @@ kotlin {
 //    linuxArm64 {
 //        config()
 //    }
-    jvm {}
+    jvm {
+        withJava()
+        val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            doFirst {
+                manifest {
+                    attributes["Main-Class"] = "MainKt"
+                }
+                from(configurations.getByName("runtimeClasspath").map { if (it.isDirectory) it else zipTree(it) })
+            }
+        }
+    }
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -70,7 +81,7 @@ kotlin {
             dependencies{
                 implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation("org.slf4j:slf4j-simple:1.7.36")
+                implementation("ch.qos.logback:logback-classic:1.4.7")
                 implementation("io.ktor:ktor-client-logging-jvm:2.3.3")
             }
         }
