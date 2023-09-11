@@ -9,6 +9,6 @@ actual fun loadFromResource(
     toml: Toml,
     yaml: Yaml
 ): ConfigurationSetting {
-    val content = ConfigurationSetting::class.java.getResource("/default.yaml")?.readText()
-    return yaml.decodeFromString(ConfigurationSetting.serializer(), content!!)
+    val content = ConfigurationSetting::class.java.getResource("/default.json5")?.readText()
+    return json.decodeFromString(ConfigurationSetting.serializer(), content!!)
 }
