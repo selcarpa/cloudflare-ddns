@@ -23,7 +23,9 @@ expect fun info(message: () -> Any?)
 
 expect fun warn(message: () -> Any?)
 
+expect fun error(e: Exception)
 expect fun error(message: () -> Any?)
+
 
 expect fun debug(message: () -> Any?)
 
@@ -101,7 +103,11 @@ fun main(args: Array<String>) = runBlocking {
 
 fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
     while (true) {
-        exec()
+        try {
+            exec()
+        } catch (e: Exception) {
+            error(e)
+        }
         delay(duration)
     }
 }

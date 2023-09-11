@@ -34,6 +34,13 @@ actual fun debug(message: () -> Any?) {
     logger.debug(message)
 }
 
+actual fun error(e: Exception) {
+    logger.error(e) {
+        e.message
+    }
+}
+
+
 actual fun debugLogSet() {
     KotlinLoggingConfiguration.logLevel = Level.ERROR;
 }

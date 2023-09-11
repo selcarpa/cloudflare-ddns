@@ -40,6 +40,12 @@ actual fun debug(message: () -> Any?) {
     logger.debug(message)
 }
 
+actual fun error(e: Exception) {
+    logger.error(e) {
+        e.message
+    }
+}
+
 actual fun debugLogSet() {
     val logCtx: LoggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
     val log = logCtx.getLogger(Logger.ROOT_LOGGER_NAME)

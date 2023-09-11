@@ -22,7 +22,9 @@ private val toml = Toml {
 private val yaml = Yaml {
 
 }
+
 expect fun loadFromResource(json: Json, toml: Toml, yaml: Yaml): ConfigurationSetting
+
 object Config {
     var ConfigurationUrl: String? = null
     val Configuration: ConfigurationSetting by lazy { initConfiguration() }
@@ -56,7 +58,7 @@ object Config {
             if (it.properties == null) {
                 it.properties = configurationSetting.common
             } else {
-                it.properties = propertiesCover(it.properties, configurationSetting.common)
+                it.properties = propertiesCover(it, configurationSetting.common)
             }
         }
 
@@ -64,18 +66,20 @@ object Config {
     }
 
 
-
-    private fun propertiesCover(properties: Properties?, common: Properties): Properties {
+    private fun propertiesCover(domain: Domain, common: Properties): Properties {
+        val properties = domain.properties
         return Properties(
-            zoneId = properties?.zoneId ?: common.zoneId!!,
-            authKey = properties?.authKey ?: common.authKey!!,
-            checkUrlv4 = properties?.checkUrlv4 ?: common.checkUrlv4!!,
-            checkUrlv6 = properties?.checkUrlv6 ?: common.checkUrlv6!!,
-            v4 = properties?.v4 ?: common.v4!!,
-            v6 = properties?.v6 ?: common.v6!!,
-            ttl = properties?.ttl ?: common.ttl!!,
-            autoPurge = properties?.autoPurge ?: common.autoPurge,
-            proxied = properties?.proxied ?: common.proxied
+            zoneId = properties?.zoneId ?: common.zoneId
+            ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
+            authKey = properties?.authKey ?: common.authKey
+            ?: throw IllegalArgumentException("no authKey specified for ${domain.name}"),
+            checkUrlv4 = properties?.checkUrlv4 ?: common.checkUrlv4 ?: "https://api4.ipify.org?format=text",
+            checkUrlv6 = properties?.checkUrlv6 ?: common.checkUrlv6 ?: "https://api6.ipify.org?format=text",
+            v4 = properties?.v4 ?: common.v4 ?: true,
+            v6 = properties?.v6 ?: common.v6 ?: false,
+            ttl = properties?.ttl ?: common.ttl ?: 300,
+            autoPurge = properties?.autoPurge ?: common.autoPurge ?: false,
+            proxied = properties?.proxied ?: common.proxied ?: false
         )
     }
 }
@@ -88,9 +92,9 @@ data class Properties(
     val checkUrlv6: String?,
     val v4: Boolean?,
     val v6: Boolean?,
-    var ttl: Int?,
-    var autoPurge: Boolean? = false,
-    var proxied: Boolean? = false
+    val ttl: Int?,
+    val autoPurge: Boolean?,
+    val proxied: Boolean?
 )
 
 @Serializable
