@@ -57,9 +57,9 @@ object Config {
         configurationSetting.domains.forEach {
             if (it.properties == null) {
                 it.properties = configurationSetting.common
-            } else {
-                it.properties = propertiesCover(it, configurationSetting.common)
             }
+            //cover again to avoid some empty value in common
+            it.properties = propertiesCover(it, configurationSetting.common)
         }
 
         return configurationSetting
