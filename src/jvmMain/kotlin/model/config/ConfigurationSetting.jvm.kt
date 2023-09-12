@@ -5,10 +5,10 @@ import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.tomlkt.Toml
 
 actual fun loadFromResource(
-    json: Json,
-    toml: Toml,
-    yaml: Yaml
+    json: Json, toml: Toml, yaml: Yaml
 ): ConfigurationSetting {
-    val content = ConfigurationSetting::class.java.getResource("/default.json5")?.readText()
-    return json.decodeFromString(ConfigurationSetting.serializer(), content!!)
+    return yaml.decodeFromString(
+        ConfigurationSetting.serializer(),
+        ConfigurationSetting::class.java.getResource("/default.yml")?.readText()!!
+    )
 }

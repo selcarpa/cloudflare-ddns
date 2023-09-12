@@ -1,19 +1,9 @@
 domains:
   - name: apollo.tain.one
-    proxied: true
-    properties:
-      v4: true
-      v6: false
-      ttl: 300
-      autoPurge: false
-      proxied: false
 common:
   zoneId: zoneId
   authKey: authKey
-  checkUrlv4: 'https://w4.tain.one'
-  checkUrlv6: 'https://w6.tain.one'
   v4: true
   v6: true
   ttl: 300
-  autoPurge: false
   proxied: false

@@ -6,8 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
@@ -103,17 +102,21 @@ fun main(args: Array<String>) = runBlocking {
 
 fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
     while (true) {
-        try {
-            exec()
-        } catch (e: Exception) {
-            error(e)
+        //https://kotlinlang.org/docs/coroutines-and-channels.html#using-the-outer-scope-s-context
+        //https://kotlinlang.org/docs/exception-handling.html
+        launch(Dispatchers.Default) {
+            try {
+                exec()
+            } catch (e: Exception) {
+                error(e)
+            }
         }
         delay(duration)
     }
 }
 
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
-
+    debug { "start ddns task for ${ddnsItems.joinToString(",") { it.domain.name }} " }
     val ip = ipSupplier()
     debug { "get ip: $ip" }
 
@@ -149,6 +152,7 @@ private fun Domain.toDDnsItems(): List<DdnsItem?> {
 }
 
 private fun DdnsItem.run(ip: String) = runBlocking {
+    debug { "start ddns task for ${this@run.domain} ${this@run.type} $ip" }
     if (!this@run.inited && !this@run.init()) {
         return@runBlocking
     }
