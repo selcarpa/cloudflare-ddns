@@ -58,7 +58,6 @@ fun main(args: Array<String>) = runBlocking {
         if (it.startsWith("-c=")) {
             ConfigurationUrl = it.replace("-c=", "")
         }
-        debugLogSet()
         if (it == "--debug") {
             debug = true
             debugLogSet()
