@@ -20,6 +20,9 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Install cURL Headers
+        run: sudo apt install libcurl4-openssl-dev
+
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
