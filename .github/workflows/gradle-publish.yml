@@ -23,10 +23,10 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: jvmJar
+          arguments: multPackage
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/libs/*-SNAPSHOT.jar,README.md"
+          artifacts: "build/libs/*-SNAPSHOT.jar,README.md,build/bin/linuxX64/releaseExecutable/*-SNAPSHOT.kexe"
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: true

@@ -12,11 +12,17 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.4-SNAPSHOT"
+version = "1.5-SNAPSHOT"
 
 repositories {
     mavenCentral()
     google()
+}
+
+kotlin.targets.withType<KotlinNativeTarget> {
+    binaries.all {
+        freeCompilerArgs += "-Xdisable-phases=EscapeAnalysis"
+    }
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -27,6 +33,7 @@ kotlin {
             executable {
                 entryPoint = "main"
                 custom()
+                baseName= rootProject.name+"-linux64-"+version
             }
         }
     }
@@ -89,4 +96,9 @@ kotlin {
         }
 
     }
+}
+
+tasks.register("multPackage") {
+    dependsOn(tasks.getByName("jvmJar"))
+    dependsOn(tasks.getByName("linuxX64Binaries"))
 }
