@@ -6,7 +6,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
@@ -77,7 +80,7 @@ fun main(args: Array<String>) = runBlocking {
     }.forEach { (ttl, d) ->
         d.filter { it.domain.properties?.v4 ?: false }
             .groupBy {
-                it.domain.properties!!.checkUrlv4
+                it.domain.properties!!.checkUrlV4
             }.forEach {
                 delayCall(ttl!!.seconds) {
                     ddns(it.value) {
@@ -87,7 +90,7 @@ fun main(args: Array<String>) = runBlocking {
             }
         d.filter { it.domain.properties?.v6 ?: false }
             .groupBy {
-                it.domain.properties!!.checkUrlv6
+                it.domain.properties!!.checkUrlV6
             }.forEach {
                 delayCall(ttl!!.seconds) {
                     ddns(it.value) {
@@ -115,9 +118,8 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
 }
 
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
-    debug { "start ddns task for ${ddnsItems.joinToString(",") { it.domain.name }} " }
+    debug { "start ${ddnsItems[0].type} ddns task for ${(ddnsItems.map { it.domain.name }.joinToString(","))}" }
     val ip = ipSupplier()
-    debug { "get ip: $ip" }
 
     ddnsItems.forEach {
         it.run(ip)
@@ -127,7 +129,9 @@ private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = 
 suspend fun getIp(checkApi: String): String {
     val response = client.get(checkApi)
     debug { response }
-    return response.bodyAsText()
+    val ip = response.bodyAsText()
+    debug { "get current ip: $ip from $checkApi" }
+    return ip
 }
 
 
@@ -151,14 +155,13 @@ private fun Domain.toDDnsItems(): List<DdnsItem?> {
 }
 
 private fun DdnsItem.run(ip: String) = runBlocking {
-    debug { "start ddns task for ${this@run.domain} ${this@run.type} $ip" }
     if (!this@run.inited && !this@run.init()) {
         return@runBlocking
     }
 
     if (this@run.exists) {
         if (ip == this@run.content) {
-            debug { "${this@run.domain.name} ${this@run.type} already been resolve to $ip" }
+            info { "${this@run.type} ${this@run.domain.name} already been resolve to $ip" }
             return@runBlocking
         }
 
@@ -265,7 +268,7 @@ private suspend fun DdnsItem.init(): Boolean {
 }
 
 private fun DdnsItem.init(dnsRecord: DnsRecord) {
-    debug { dnsRecord }
+    debug { "exists dnsRecord: $dnsRecord" }
     this.ttl = dnsRecord.ttl
     this.proxied = dnsRecord.proxied
     this.content = dnsRecord.content
