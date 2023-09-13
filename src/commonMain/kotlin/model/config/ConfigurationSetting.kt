@@ -73,8 +73,8 @@ object Config {
             ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
             authKey = properties?.authKey ?: common.authKey
             ?: throw IllegalArgumentException("no authKey specified for ${domain.name}"),
-            checkUrlv4 = properties?.checkUrlv4 ?: common.checkUrlv4 ?: "https://api4.ipify.org?format=text",
-            checkUrlv6 = properties?.checkUrlv6 ?: common.checkUrlv6 ?: "https://api6.ipify.org?format=text",
+            checkUrlV4 = properties?.checkUrlV4 ?: common.checkUrlV4 ?: "https://api4.ipify.org?format=text",
+            checkUrlV6 = properties?.checkUrlV6 ?: common.checkUrlV6 ?: "https://api6.ipify.org?format=text",
             v4 = properties?.v4 ?: common.v4 ?: true,
             v6 = properties?.v6 ?: common.v6 ?: false,
             ttl = properties?.ttl ?: common.ttl ?: 300,
@@ -88,8 +88,8 @@ object Config {
 data class Properties(
     val zoneId: String?,
     val authKey: String?,
-    val checkUrlv4: String?,
-    val checkUrlv6: String?,
+    val checkUrlV4: String?,
+    val checkUrlV6: String?,
     val v4: Boolean?,
     val v6: Boolean?,
     val ttl: Int?,
