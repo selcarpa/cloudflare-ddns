@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.5-SNAPSHOT"
+version = "1.6-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -33,7 +33,7 @@ kotlin {
             executable {
                 entryPoint = "main"
                 custom()
-                baseName= rootProject.name+"-linux64-"+version
+                baseName= rootProject.name+"-linuxX64-"+version
             }
         }
     }
