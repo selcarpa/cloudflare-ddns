@@ -6,10 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
@@ -71,9 +68,7 @@ fun main(args: Array<String>) = runBlocking {
 
     info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
-    val ddnsItems = Configuration.domains.map {
-        it.toDDnsItems()
-    }.flatten().filterNotNull().toList()
+    val ddnsItems = Configuration.domains.map { it.toDDnsItems() }.flatten().toList()
 
     ddnsItems.groupBy {
         it.domain.properties!!.ttl
@@ -82,24 +77,88 @@ fun main(args: Array<String>) = runBlocking {
             .groupBy {
                 it.domain.properties!!.checkUrlV4
             }.forEach {
-                delayCall(ttl!!.seconds) {
-                    ddns(it.value) {
-                        getIp(it.key!!)
-                    }
-                }
+                launchTask(ttl, it)
             }
         d.filter { it.domain.properties?.v6 ?: false }
             .groupBy {
                 it.domain.properties!!.checkUrlV6
             }.forEach {
-                delayCall(ttl!!.seconds) {
-                    ddns(it.value) {
-                        getIp(it.key!!)
-                    }
-                }
+                launchTask(ttl, it)
             }
     }
 
+    Configuration.domains.filter { it.properties?.autoPurge ?: false }
+        .filter { it.properties!!.v4!! || it.properties!!.v6!! }.forEach {
+            launch(Dispatchers.Default) {
+                if (it.properties?.v4 != true) {
+                    launch(Dispatchers.Default) {
+                        delayCall(it.properties!!.ttl!!.seconds) {
+                            it.toV4DdnsItems().purge()
+                        }
+                    }
+
+                } else if (it.properties?.v6 != true) {
+                    launch(Dispatchers.Default) {
+                        delayCall(it.properties!!.ttl!!.seconds) {
+                            it.toV6DdnsItems().purge()
+                        }
+                    }
+                }
+            }
+        }
+
+}
+
+fun DdnsItem.purge() = runBlocking {
+    while (true) {
+        if (!this@purge.inited && !this@purge.init()) {
+            error { "purge ${this@purge.domain.name} ${this@purge.type.name} failed, try after ${this@purge.domain.properties!!.ttl}" }
+        }
+
+        if (!this@purge.exists) {
+            info { "no exists record for ${this@purge.domain.name} ${this@purge.type.name}, purge task stopped" }
+            break
+        }
+
+        if (purge(this@purge)) {
+            break
+        }
+        delay(this@purge.domain.properties!!.ttl!!.seconds)
+    }
+}
+
+suspend fun purge(ddnsItem: DdnsItem): Boolean {
+    val authHeader = ddnsItem.authHeader()
+    val httpResponse = client.delete(
+        "https://api.cloudflare.com/client/v4/zones/${ddnsItem.domain.properties!!.zoneId}/purge_cache"
+    ) {
+        headers {
+            authHeader.forEach {
+                append(it.key, it.value)
+            }
+        }
+
+    }
+    val cloudflareBody = httpResponse.body<CloudflareBody<Any>>()
+    if (!cloudflareBody.success) {
+        error { cloudflareBody.errors }
+        return false
+    }
+    info { "purge ${ddnsItem.domain.name} ${ddnsItem.type.name} successful" }
+    return true
+}
+
+private fun CoroutineScope.launchTask(
+    ttl: Int?,
+    it: Map.Entry<String?, List<DdnsItem>>
+) {
+    launch(Dispatchers.Default) {
+        delayCall(ttl!!.seconds) {
+            ddns(it.value) {
+                getIp(it.key!!)
+            }
+        }
+    }
 }
 
 fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
@@ -118,7 +177,7 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
 }
 
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
-    debug { "start ${ddnsItems[0].type} ddns task for ${(ddnsItems.map { it.domain.name }.joinToString(","))}" }
+    debug { "start ${ddnsItems[0].type} ddns task for ${(ddnsItems.joinToString(",") { it.domain.name })}" }
     val ip = ipSupplier()
 
     ddnsItems.forEach {
@@ -134,24 +193,31 @@ suspend fun getIp(checkApi: String): String {
     return ip
 }
 
+private fun Domain.toV4DdnsItems(): DdnsItem {
+    return DdnsItem(
+        domain = this, type = TYPE.A
+    )
+}
 
-private fun Domain.toDDnsItems(): List<DdnsItem?> {
+private fun Domain.toV6DdnsItems(): DdnsItem {
+    return DdnsItem(
+        domain = this, type = TYPE.AAAA
+    )
+}
+
+private fun Domain.toDDnsItems(): List<DdnsItem> {
     return listOf(
         if (this.properties!!.v4!!) {
-            DdnsItem(
-                domain = this, type = TYPE.A
-            )
+            this.toV4DdnsItems()
         } else {
             null
         },
         if (this.properties!!.v6!!) {
-            DdnsItem(
-                domain = this, type = TYPE.AAAA
-            )
+            this.toV6DdnsItems()
         } else {
             null
         },
-    )
+    ).filterNotNull()
 }
 
 private fun DdnsItem.run(ip: String) = runBlocking {
@@ -160,13 +226,16 @@ private fun DdnsItem.run(ip: String) = runBlocking {
     }
 
     if (this@run.exists) {
-        if (ip == this@run.content) {
-            info { "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip" }
+        if (ip != this@run.content // if ip on cloudflare not equals to current ip
+            || this@run.proxied != this@run.domain.properties!!.proxied  // if proxied on cloudflare not equals to config
+            || this@run.ttl != this@run.domain.properties!!.ttl // if ttl on cloudflare not equals to config
+        ) {
+            info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
+            updateDns(ip, this@run, true)
             return@runBlocking
         }
 
-        info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
-        updateDns(ip, this@run, true)
+        info { "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip" }
         return@runBlocking
     }
 
