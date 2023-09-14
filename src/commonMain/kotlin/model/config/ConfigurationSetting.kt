@@ -106,7 +106,6 @@ data class ConfigurationSetting(
 @Serializable
 data class Domain(
     val name: String,
-    var proxied: Boolean = false,
     var properties: Properties?,
 )
 
