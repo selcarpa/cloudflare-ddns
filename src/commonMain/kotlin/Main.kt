@@ -161,7 +161,7 @@ private fun DdnsItem.run(ip: String) = runBlocking {
 
     if (this@run.exists) {
         if (ip == this@run.content) {
-            info { "${this@run.type} ${this@run.domain.name} already been resolve to $ip" }
+            info { "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip" }
             return@runBlocking
         }
 
