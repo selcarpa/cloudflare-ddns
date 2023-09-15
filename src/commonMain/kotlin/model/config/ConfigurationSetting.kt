@@ -1,10 +1,12 @@
 package model.config
 
+import info
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.tomlkt.Toml
+import okio.FileSystem
 import okio.Path.Companion.toPath
 import utils.readFile
 
@@ -31,7 +33,7 @@ object Config {
 
     private fun initConfiguration(): ConfigurationSetting {
         val configurationSetting = if (ConfigurationUrl.orEmpty().isEmpty()) {
-            loadFromResource(json, toml, yaml)
+            printGuide()
         } else {
             val content = readFile(ConfigurationUrl!!.toPath())
             when {
@@ -63,6 +65,11 @@ object Config {
         }
 
         return configurationSetting
+    }
+
+    private fun printGuide(): ConfigurationSetting {
+        info { "no configuration file specified, please use \"-c=configfile\" to specify a configuration file" }
+        throw IllegalArgumentException("no configuration file specified")
     }
 
 
