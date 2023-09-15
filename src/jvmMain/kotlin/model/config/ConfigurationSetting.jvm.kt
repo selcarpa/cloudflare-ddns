@@ -7,8 +7,8 @@ import net.peanuuutz.tomlkt.Toml
 actual fun loadFromResource(
     json: Json, toml: Toml, yaml: Yaml
 ): ConfigurationSetting {
-    return yaml.decodeFromString(
+    return json.decodeFromString(
         ConfigurationSetting.serializer(),
-        ConfigurationSetting::class.java.getResource("/default.yml")?.readText()!!
+        ConfigurationSetting::class.java.getResource("/default.json5")?.readText()!!
     )
 }
