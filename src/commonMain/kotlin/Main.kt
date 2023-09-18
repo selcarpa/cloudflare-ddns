@@ -235,7 +235,13 @@ private fun DdnsItem.run(ip: String) = runBlocking {
             return@runBlocking
         }
 
-        info { "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip" }
+        info {
+            "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip ${
+                if (this@run.domain.properties!!.proxied == true) "proxied" else {
+                    "not proxied"
+                }
+            }"
+        }
         return@runBlocking
     }
 
