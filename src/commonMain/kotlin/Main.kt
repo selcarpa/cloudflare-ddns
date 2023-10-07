@@ -206,7 +206,7 @@ private fun Domain.toV6DdnsItems(): DdnsItem {
 }
 
 private fun Domain.toDDnsItems(): List<DdnsItem> {
-    return listOf(
+    return listOfNotNull(
         if (this.properties!!.v4!!) {
             this.toV4DdnsItems()
         } else {
@@ -217,7 +217,7 @@ private fun Domain.toDDnsItems(): List<DdnsItem> {
         } else {
             null
         },
-    ).filterNotNull()
+    )
 }
 
 private fun DdnsItem.run(ip: String) = runBlocking {

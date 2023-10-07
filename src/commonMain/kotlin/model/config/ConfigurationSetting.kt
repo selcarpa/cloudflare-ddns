@@ -5,8 +5,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.mamoe.yamlkt.Yaml
-import net.peanuuutz.tomlkt.Toml
-import okio.FileSystem
 import okio.Path.Companion.toPath
 import utils.readFile
 
@@ -18,14 +16,12 @@ private val json = Json {
     explicitNulls = false
 }
 
-private val toml = Toml {
-    ignoreUnknownKeys = true
-}
+//private val toml = Toml {
+//    ignoreUnknownKeys = true
+//}
 private val yaml = Yaml {
 
 }
-
-expect fun loadFromResource(json: Json, toml: Toml, yaml: Yaml): ConfigurationSetting
 
 object Config {
     var ConfigurationUrl: String? = null
@@ -41,9 +37,9 @@ object Config {
                     json.decodeFromString<ConfigurationSetting>(content)
                 }
 
-                ConfigurationUrl!!.endsWith("toml") -> {
-                    toml.decodeFromString(ConfigurationSetting.serializer(), content)
-                }
+//                ConfigurationUrl!!.endsWith("toml") -> {
+//                    toml.decodeFromString(ConfigurationSetting.serializer(), content)
+//                }
 
                 ConfigurationUrl!!.endsWith("yml") || ConfigurationUrl!!.endsWith("yaml") -> {
                     yaml.decodeFromString(ConfigurationSetting.serializer(), content)
