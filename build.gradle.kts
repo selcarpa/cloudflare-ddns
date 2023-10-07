@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.7-SNAPSHOT"
+version = "1.8-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -29,21 +29,22 @@ kotlin.targets.withType<KotlinNativeTarget> {
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
     targetHierarchy.default()
-    fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}) {
+    fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}, targetName: String) {
         binaries {
             executable {
                 entryPoint = "main"
                 custom()
-                baseName = rootProject.name + this.runTaskName + version
+                baseName = "${rootProject.name}-${targetName}-${version}"
+
             }
         }
     }
 
     linuxX64 {
-        config()
+        config(targetName = "linux-x64")
     }
 //    linuxArm64 {
-//        config()
+//        config(targetName = "linux-arm64")
 //    }
     jvm {
         withJava()
@@ -101,6 +102,7 @@ kotlin {
 }
 
 tasks.register("multPackage") {
+    dependsOn(tasks.getByName("clean"))
     dependsOn(tasks.getByName("jvmJar"))
 //    dependsOn(tasks.getByName("linuxArm64Binaries"))
     dependsOn(tasks.getByName("linuxX64Binaries"))
