@@ -1,5 +1,6 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jetbrains.kotlin.gradle.*
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.Executable
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 val ktor_version: String by project
 val kotlin_version: String by project
@@ -33,7 +34,7 @@ kotlin {
             executable {
                 entryPoint = "main"
                 custom()
-                baseName= rootProject.name+"-linuxX64-"+version
+                baseName = rootProject.name + this.runTaskName + version
             }
         }
     }
@@ -68,7 +69,7 @@ kotlin {
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
 //                implementation("com.akuleshov7:ktoml-core:0.5.0")
-                implementation("net.peanuuutz.tomlkt:tomlkt:0.3.2")
+//                implementation("net.peanuuutz.tomlkt:tomlkt:0.3.5")
             }
         }
 
@@ -87,8 +88,8 @@ kotlin {
 //                implementation("io.ktor:ktor-client-logging:$ktor_version")
 //            }
 //        }
-        val jvmMain by getting{
-            dependencies{
+        val jvmMain by getting {
+            dependencies {
                 implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
                 implementation("ch.qos.logback:logback-classic:1.4.7")
@@ -101,5 +102,6 @@ kotlin {
 
 tasks.register("multPackage") {
     dependsOn(tasks.getByName("jvmJar"))
+//    dependsOn(tasks.getByName("linuxArm64Binaries"))
     dependsOn(tasks.getByName("linuxX64Binaries"))
 }
