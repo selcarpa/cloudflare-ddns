@@ -1,11 +1,10 @@
 package utils
 
 import okio.FileSystem
-import okio.Path
 import okio.buffer
 import okio.use
 
-actual fun readFile(path: Path): String {
+actual fun readFile(path: okio.Path): String {
     var firstLine = true
     FileSystem.SYSTEM.source(path).use { fileSource ->
         var result = ""

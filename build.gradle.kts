@@ -8,12 +8,12 @@ val okio_version: String by project
 
 plugins {
     kotlin("multiplatform") version "1.9.10"
-    id("io.ktor.plugin") version "2.3.3"
+    id("io.ktor.plugin") version "2.3.5"
     kotlin("plugin.serialization") version "1.9.0"
 }
 
 group = "one.tain"
-version = "1.8-SNAPSHOT"
+version = "1.9-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -43,12 +43,12 @@ kotlin {
     linuxX64 {
         config(targetName = "linux-x64")
     }
-//    linuxArm64 {
-//        config(targetName = "linux-arm64")
-//    }
+    linuxArm64 {
+        config(targetName = "linux-arm64")
+    }
     jvm {
         withJava()
-        @kotlin.Suppress("UNUSED_VARIABLE")
+        @Suppress("UNUSED_VARIABLE")
         val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             doFirst {
@@ -59,7 +59,7 @@ kotlin {
             }
         }
     }
-    @kotlin.Suppress("UNUSED_VARIABLE")
+    @Suppress("UNUSED_VARIABLE")
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -69,8 +69,13 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
-//                implementation("com.akuleshov7:ktoml-core:0.5.0")
-//                implementation("net.peanuuutz.tomlkt:tomlkt:0.3.5")
+                implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
+            }
+        }
+
+        val linuxMain by getting {
+            dependencies {
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
@@ -78,17 +83,15 @@ kotlin {
             dependencies {
                 implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
                 implementation("io.ktor:ktor-client-curl:$ktor_version")
-                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
-//        val linuxArm64Main by getting {
-//            dependencies {
-//                implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
-//                implementation("io.ktor:ktor-client-curl:$ktor_version")
-//                implementation("io.ktor:ktor-client-logging:$ktor_version")
-//            }
-//        }
+        val linuxArm64Main by getting {
+            dependencies {
+                implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
+                implementation("io.ktor:ktor-client-cio:$ktor_version")
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
@@ -104,6 +107,6 @@ kotlin {
 tasks.register("multPackage") {
     dependsOn(tasks.getByName("clean"))
     dependsOn(tasks.getByName("jvmJar"))
-//    dependsOn(tasks.getByName("linuxArm64Binaries"))
+    dependsOn(tasks.getByName("linuxArm64Binaries"))
     dependsOn(tasks.getByName("linuxX64Binaries"))
 }

@@ -1,4 +1,6 @@
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
+import io.github.oshai.kotlinlogging.Level
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.logging.*
@@ -14,20 +16,31 @@ actual fun <T : HttpClientEngineConfig> HttpClientConfig<T>.initLogging() {
 }
 
 actual fun info(message: () -> Any?) {
-    logger.info { message }
+    logger.info(message)
 }
 
 
 actual fun warn(message: () -> Any?) {
-    logger.warn { message }
+    logger.warn(message)
 }
 
 
 actual fun error(message: () -> Any?) {
-    logger.error { message }
+    logger.error(message)
 }
 
 
 actual fun debug(message: () -> Any?) {
-    logger.debug { message }
+    logger.debug(message)
+}
+
+actual fun error(e: Exception) {
+    logger.error(e) {
+        e.message
+    }
+}
+
+
+actual fun debugLogSet() {
+    KotlinLoggingConfiguration.logLevel = Level.ERROR;
 }
