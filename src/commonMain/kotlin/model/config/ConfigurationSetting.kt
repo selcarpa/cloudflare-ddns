@@ -1,6 +1,7 @@
 package model.config
 
-import info
+import exception.CFDdnsException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -9,6 +10,7 @@ import net.peanuuutz.tomlkt.Toml
 import okio.Path.Companion.toPath
 import utils.readFile
 
+private val logger = KotlinLogging.logger {}
 
 @OptIn(ExperimentalSerializationApi::class)
 private val json = Json {
@@ -66,8 +68,8 @@ object Config {
     }
 
     private fun printGuide(): ConfigurationSetting {
-        info { "no configuration file specified, please use \"-c=configfile\" to specify a configuration file" }
-        throw IllegalArgumentException("no configuration file specified")
+        logger.info { "no configuration file specified, please use \"-c=configfile\" to specify a configuration file" }
+        throw CFDdnsException()
     }
 
 
