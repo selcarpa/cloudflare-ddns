@@ -1,7 +1,9 @@
+import exception.CFDdnsException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -18,15 +20,8 @@ import model.request.UpdateDnsRecordRequest
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-expect fun info(message: () -> Any?)
 
-expect fun warn(message: () -> Any?)
-
-expect fun error(e: Exception)
-expect fun error(message: () -> Any?)
-
-
-expect fun debug(message: () -> Any?)
+private val logger = KotlinLogging.logger {}
 
 
 private val json = Json {
@@ -42,32 +37,50 @@ private val client by lazy {
             json(json)
         }
         if (debug) {
-            this.initLogging()
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.BODY
+                sanitizeHeader { header -> header == HttpHeaders.Authorization }
+            }
         }
     }
 }
 
-expect fun <T : HttpClientEngineConfig> HttpClientConfig<T>.initLogging()
-
 expect fun debugLogSet()
+
+expect fun exitGracefully()
 
 
 fun main(args: Array<String>) = runBlocking {
-    args.forEach {
-        println(it)
-        if (it.startsWith("-c=")) {
-            ConfigurationUrl = it.replace("-c=", "")
+    try {
+        args.forEach {
+            println(it)
+            if (it.startsWith("-c=")) {
+                ConfigurationUrl = it.replace("-c=", "")
+            }
+            if (it == "--debug") {
+                debug = true
+                debugLogSet()
+            }
         }
-        if (it == "--debug") {
-            debug = true
-            debugLogSet()
+
+        logger.debug { "debug-mode online" }
+        logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
+
+        mainTask()
+    } catch (e: Exception) {
+        if (e is CFDdnsException) {
+            exitGracefully()
+        } else {
+            logger.error(e) {
+                e.message
+            }
+            exitGracefully()
         }
     }
+}
 
-    debug { "debug-mode online" }
-
-    info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
-
+private fun CoroutineScope.mainTask() {
     val ddnsItems = Configuration.domains.map { it.toDDnsItems() }.flatten().toList()
 
     ddnsItems.groupBy {
@@ -106,17 +119,16 @@ fun main(args: Array<String>) = runBlocking {
                 }
             }
         }
-
 }
 
 fun DdnsItem.purge() = runBlocking {
     while (true) {
         if (!this@purge.inited && !this@purge.init()) {
-            error { "purge ${this@purge.domain.name} ${this@purge.type.name} failed, try after ${this@purge.domain.properties!!.ttl}" }
+            logger.error { "purge ${this@purge.domain.name} ${this@purge.type.name} failed, try after ${this@purge.domain.properties!!.ttl}" }
         }
 
         if (!this@purge.exists) {
-            info { "no exists record for ${this@purge.domain.name} ${this@purge.type.name}, purge task stopped" }
+            logger.info { "no exists record for ${this@purge.domain.name} ${this@purge.type.name}, purge task stopped" }
             break
         }
 
@@ -141,10 +153,10 @@ suspend fun purge(ddnsItem: DdnsItem): Boolean {
     }
     val cloudflareBody = httpResponse.body<CloudflareBody<Any>>()
     if (!cloudflareBody.success) {
-        error { cloudflareBody.errors }
+        logger.error { cloudflareBody.errors }
         return false
     }
-    info { "purge ${ddnsItem.domain.name} ${ddnsItem.type.name} successful" }
+    logger.info { "purge ${ddnsItem.domain.name} ${ddnsItem.type.name} successful" }
     return true
 }
 
@@ -169,7 +181,9 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
             try {
                 exec()
             } catch (e: Exception) {
-                error(e)
+                logger.error(e) {
+                    e.message
+                }
             }
         }
         delay(duration)
@@ -177,7 +191,7 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
 }
 
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
-    debug { "start ${ddnsItems[0].type} ddns task for ${(ddnsItems.joinToString(",") { it.domain.name })}" }
+    logger.debug { "start ${ddnsItems[0].type} ddns task for ${(ddnsItems.joinToString(",") { it.domain.name })}" }
     val ip = ipSupplier()
 
     ddnsItems.forEach {
@@ -187,9 +201,9 @@ private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = 
 
 suspend fun getIp(checkApi: String): String {
     val response = client.get(checkApi)
-    debug { response }
+    logger.debug { response }
     val ip = response.bodyAsText()
-    debug { "get current ip: $ip from $checkApi" }
+    logger.debug { "get current ip: $ip from $checkApi" }
     return ip
 }
 
@@ -230,12 +244,12 @@ private fun DdnsItem.run(ip: String) = runBlocking {
             || this@run.proxied != this@run.domain.properties!!.proxied  // if proxied on cloudflare not equals to config
             || this@run.ttl != this@run.domain.properties!!.ttl // if ttl on cloudflare not equals to config
         ) {
-            info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
+            logger.info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
             updateDns(ip, this@run, true)
             return@runBlocking
         }
 
-        info {
+        logger.info {
             "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip ${
                 if (this@run.domain.properties!!.proxied == true) "proxied" else {
                     "not proxied"
@@ -245,7 +259,7 @@ private fun DdnsItem.run(ip: String) = runBlocking {
         return@runBlocking
     }
 
-    info { "create ${this@run.domain.name} with ${this@run.type.name} $ip" }
+    logger.info { "create ${this@run.domain.name} with ${this@run.type.name} $ip" }
     updateDns(ip, this@run)
 }
 
@@ -294,12 +308,12 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     }
     val cloudflareBody = httpResponse.body<CloudflareBody<DnsRecord>>()
     if (!cloudflareBody.success) {
-        error { cloudflareBody.errors }
+        logger.error { cloudflareBody.errors }
     }
     if (update) {
-        info { "updated ${ddnsItem.domain.name} to $ip successful" }
+        logger.info { "updated ${ddnsItem.domain.name} to $ip successful" }
     } else {
-        info { "created ${ddnsItem.domain.name} with $ip successful" }
+        logger.info { "created ${ddnsItem.domain.name} with $ip successful" }
     }
     ddnsItem.init(cloudflareBody.result!!)
 }
@@ -328,14 +342,14 @@ private suspend fun DdnsItem.init(): Boolean {
 
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
-        error { cloudflareBody.errors }
-        warn { "init information error. try after ${this.domain.properties!!.ttl}" }
+        logger.error { cloudflareBody.errors }
+        logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {
         init(cloudflareBody.result!!.first())
         true
     } else {
-        info { "no ${this@init.type.name} exists record found for ${this@init.domain.name}" }
+        logger.info { "no ${this@init.type.name} exists record found for ${this@init.domain.name}" }
         this.exists = false
         true
     }
@@ -343,7 +357,7 @@ private suspend fun DdnsItem.init(): Boolean {
 }
 
 private fun DdnsItem.init(dnsRecord: DnsRecord) {
-    debug { "exists dnsRecord: $dnsRecord" }
+    logger.debug { "exists dnsRecord: $dnsRecord" }
     this.ttl = dnsRecord.ttl
     this.proxied = dnsRecord.proxied
     this.content = dnsRecord.content

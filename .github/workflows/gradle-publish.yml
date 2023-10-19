@@ -30,6 +30,6 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/libs/*-SNAPSHOT.jar,README.md,build/bin/linuxX64/releaseExecutable/*-SNAPSHOT.kexe"
+          artifacts: "build/libs/*-SNAPSHOT.jar,README.md,build/bin/linuxX64/releaseExecutable/*-SNAPSHOT.kexe,build/bin/mingwX64/releaseExecutable/*-SNAPSHOT.exe"
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: true

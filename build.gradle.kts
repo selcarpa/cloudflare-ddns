@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 val ktor_version: String by project
 val kotlin_version: String by project
 val okio_version: String by project
+val kotlin_logging_version:String by project
 
 plugins {
     kotlin("multiplatform") version "1.9.10"
@@ -13,7 +14,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.9-SNAPSHOT"
+version = "1.10-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -46,6 +47,15 @@ kotlin {
     linuxArm64 {
         config(targetName = "linux-arm64")
     }
+    mingwX64 {
+        config(targetName = "windows-x64")
+    }
+//    macosArm64 {
+//        config(targetName = "macos-arm64")
+//    }
+//    macosX64 {
+//        config(targetName = "macos-x64")
+//    }
     jvm {
         withJava()
         @Suppress("UNUSED_VARIABLE")
@@ -70,34 +80,37 @@ kotlin {
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
+                implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
-        val linuxMain by getting {
+        val nativeMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
         val linuxX64Main by getting {
             dependencies {
-                implementation("io.github.oshai:kotlin-logging-linuxx64:5.1.0")
                 implementation("io.ktor:ktor-client-curl:$ktor_version")
+            }
+        }
+
+        val mingwX64Main by getting {
+            dependencies {
+                implementation("io.ktor:ktor-client-winhttp:$ktor_version")
             }
         }
 
         val linuxArm64Main by getting {
             dependencies {
-                implementation("io.github.oshai:kotlin-logging-linuxarm64:5.1.0")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
                 implementation("ch.qos.logback:logback-classic:1.4.7")
-                implementation("io.ktor:ktor-client-logging-jvm:2.3.3")
             }
         }
 
@@ -109,4 +122,5 @@ tasks.register("multPackage") {
     dependsOn(tasks.getByName("jvmJar"))
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     dependsOn(tasks.getByName("linuxX64Binaries"))
+    dependsOn(tasks.getByName("mingwX64Binaries"))
 }
