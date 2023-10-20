@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class CloudflareBody<D> {
-    var errors: List<String> = listOf()
+    var errors: List<Error> = listOf()
     var messages: List<String> = listOf()
     var result: D? = null
     var success: Boolean = false
@@ -47,3 +47,8 @@ data class UpdateDnsRecordRequest(
     var tags: List<String>
 )
 
+@Serializable
+data class Error(
+    val code: Int,
+    var message: String = ""
+)
