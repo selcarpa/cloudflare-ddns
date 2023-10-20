@@ -9,6 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
@@ -24,8 +25,10 @@ import kotlin.time.Duration.Companion.seconds
 private val logger = KotlinLogging.logger {}
 
 
+@OptIn(ExperimentalSerializationApi::class)
 private val json = Json {
     ignoreUnknownKeys = true
+    explicitNulls = false
 }
 
 private var debug = false
@@ -80,41 +83,39 @@ fun main(args: Array<String>) = runBlocking {
     }
 }
 
+/**
+ * to launch ddns task and purge task
+ */
 private fun CoroutineScope.mainTask() {
     val ddnsItems = Configuration.domains.map { it.toDDnsItems() }.flatten().toList()
 
     ddnsItems.groupBy {
         it.domain.properties!!.ttl
     }.forEach { (ttl, d) ->
-        d.filter { it.domain.properties?.v4 ?: false }
-            .groupBy {
-                it.domain.properties!!.checkUrlV4
-            }.forEach {
-                launchTask(ttl, it)
-            }
-        d.filter { it.domain.properties?.v6 ?: false }
-            .groupBy {
-                it.domain.properties!!.checkUrlV6
-            }.forEach {
-                launchTask(ttl, it)
-            }
+        d.filter { it.domain.properties?.v4 ?: false }.groupBy {
+            it.domain.properties!!.checkUrlV4
+        }.forEach {
+            launchTask(ttl, it)
+        }
+        d.filter { it.domain.properties?.v6 ?: false }.groupBy {
+            it.domain.properties!!.checkUrlV6
+        }.forEach {
+            launchTask(ttl, it)
+        }
     }
 
+    //if autoPurge is on, it will purge redundant dns record.
+    //for example, if there is a domain in config file, ipv4 is on, ipv6 is off, autoPurge is on. then it will purge ipv6 record.
     Configuration.domains.filter { it.properties?.autoPurge ?: false }
         .filter { it.properties!!.v4!! || it.properties!!.v6!! }.forEach {
             launch(Dispatchers.Default) {
                 if (it.properties?.v4 != true) {
                     launch(Dispatchers.Default) {
-                        delayCall(it.properties!!.ttl!!.seconds) {
-                            it.toV4DdnsItems().purge()
-                        }
+                        it.toV4DdnsItems().purge()
                     }
-
                 } else if (it.properties?.v6 != true) {
                     launch(Dispatchers.Default) {
-                        delayCall(it.properties!!.ttl!!.seconds) {
-                            it.toV6DdnsItems().purge()
-                        }
+                        it.toV6DdnsItems().purge()
                     }
                 }
             }
@@ -142,7 +143,7 @@ fun DdnsItem.purge() = runBlocking {
 suspend fun purge(ddnsItem: DdnsItem): Boolean {
     val authHeader = ddnsItem.authHeader()
     val httpResponse = client.delete(
-        "https://api.cloudflare.com/client/v4/zones/${ddnsItem.domain.properties!!.zoneId}/purge_cache"
+        "https://api.cloudflare.com/client/v4/zones/${ddnsItem.domain.properties!!.zoneId}/dns_records/${ddnsItem.id}/"
     ) {
         headers {
             authHeader.forEach {
@@ -161,8 +162,7 @@ suspend fun purge(ddnsItem: DdnsItem): Boolean {
 }
 
 private fun CoroutineScope.launchTask(
-    ttl: Int?,
-    it: Map.Entry<String?, List<DdnsItem>>
+    ttl: Int?, it: Map.Entry<String?, List<DdnsItem>>
 ) {
     launch(Dispatchers.Default) {
         delayCall(ttl!!.seconds) {
@@ -244,23 +244,27 @@ private fun DdnsItem.run(ip: String) = runBlocking {
             || this@run.proxied != this@run.domain.properties!!.proxied  // if proxied on cloudflare not equals to config
             || this@run.ttl != this@run.domain.properties!!.ttl // if ttl on cloudflare not equals to config
         ) {
-            logger.info { "update ${this@run.domain.name} to ${this@run.type.name} $ip" }
+            logger.info {
+                "update ${this@run.domain.name} to ${this@run.type.name} $ip ${proxiedString()}"
+            }
             updateDns(ip, this@run, true)
             return@runBlocking
         }
 
         logger.info {
-            "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip ${
-                if (this@run.domain.properties!!.proxied == true) "proxied" else {
-                    "not proxied"
-                }
-            }"
+            "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip ${proxiedString()}"
         }
         return@runBlocking
+    } else {
+        logger.info {
+            "create ${this@run.domain.name} with ${this@run.type.name} $ip ${proxiedString()}"
+        }
+        updateDns(ip, this@run)
     }
+}
 
-    logger.info { "create ${this@run.domain.name} with ${this@run.type.name} $ip" }
-    updateDns(ip, this@run)
+private fun DdnsItem.proxiedString() = if (this.domain.properties!!.proxied == false) "not proxied" else {
+    "proxied"
 }
 
 suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
@@ -350,7 +354,6 @@ private suspend fun DdnsItem.init(): Boolean {
         true
     } else {
         logger.info { "no ${this@init.type.name} exists record found for ${this@init.domain.name}" }
-        this.exists = false
         true
     }
 
@@ -363,6 +366,7 @@ private fun DdnsItem.init(dnsRecord: DnsRecord) {
     this.content = dnsRecord.content
     this.id = dnsRecord.id
     this.inited = true
+    this.exists = true
 }
 
 private fun DdnsItem.authHeader(): Map<String, String> {
@@ -381,7 +385,7 @@ data class DdnsItem(
     var ttl: Int? = null
     var proxied: Boolean? = null
     var inited: Boolean = false
-    var exists: Boolean = true
+    var exists: Boolean = false
     var content: String = ""
 }
 
