@@ -1,9 +1,0 @@
-domains:
-  - name: apollo.tain.one
-common:
-  zoneId: zoneId
-  authKey: authKey
-  v4: true
-  v6: true
-  ttl: 300
-  proxied: false

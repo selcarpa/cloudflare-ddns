@@ -20,7 +20,7 @@ actual fun debugLogSet() {
     logEncoder.charset = StandardCharsets.UTF_8
     logEncoder.start()
 
-    val logConsoleAppender: ConsoleAppender<*> = ConsoleAppender<Any?>()
+    val logConsoleAppender: ConsoleAppender<ILoggingEvent> = ConsoleAppender<ILoggingEvent>()
     logConsoleAppender.context = logCtx
     logConsoleAppender.name = "console"
     logConsoleAppender.encoder = logEncoder

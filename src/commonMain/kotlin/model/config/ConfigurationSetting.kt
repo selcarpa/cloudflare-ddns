@@ -33,7 +33,7 @@ object Config {
 
     private fun initConfiguration(): ConfigurationSetting {
         val configurationSetting = if (ConfigurationUrl.orEmpty().isEmpty()) {
-            printGuide()
+            printGuideAndThrow()
         } else {
             val content = readFile(ConfigurationUrl!!.toPath())
             when {
@@ -67,7 +67,7 @@ object Config {
         return configurationSetting
     }
 
-    private fun printGuide(): ConfigurationSetting {
+    private fun printGuideAndThrow(): ConfigurationSetting {
         logger.info { "no configuration file specified, please use \"-c=configfile\" to specify a configuration file" }
         throw CFDdnsException()
     }
