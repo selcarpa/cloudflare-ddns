@@ -128,6 +128,8 @@ tasks.register("multPackage") {
 tasks.register("publish-github") {
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("dockerBuildx"))
+    dependsOn(tasks.getByName("dockerLogin"))
+    dependsOn(tasks.getByName("dockerPush"))
 }
 
 task("dockerBuildx", Exec::class) {
@@ -137,4 +139,9 @@ task("dockerBuildx", Exec::class) {
 }
 task("dockerLogin",Exec::class){
     commandLine("docker login -u ${properties["dockerUserName"]} -p ${properties["dockerPassword"]}")
+}
+
+tasks.register("dockerPush",Exec::class){
+    dependsOn(tasks.getByName("dockerLogin"))
+    commandLine("docker push selcarpa/cloudflare-ddns --all-tags")
 }
