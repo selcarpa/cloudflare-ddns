@@ -127,10 +127,14 @@ tasks.register("multPackage") {
 
 tasks.register("publish-github") {
     dependsOn(tasks.getByName("multPackage"))
+    dependsOn(tasks.getByName("dockerBuildx"))
 }
 
 task("dockerBuildx", Exec::class) {
     commandLine(
-        "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest --push ."
+        "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest ."
     )
+}
+task("dockerLogin",Exec::class){
+    commandLine("docker login -u ${properties["dockerUserName"]} -p ${properties["dockerPassword"]}")
 }
