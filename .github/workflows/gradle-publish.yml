@@ -26,7 +26,10 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: multPackage
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_password: ${{ secrets.DOCKER_PASSWORD }}
+        run:
+          ./gradlew -PdockerUserName=%docker_username% -PdockerPassword=%docker_password% publish-github
 
       - uses: ncipollo/release-action@v1
         with:

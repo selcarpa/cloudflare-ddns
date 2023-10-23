@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 val ktor_version: String by project
 val kotlin_version: String by project
 val okio_version: String by project
-val kotlin_logging_version:String by project
+val kotlin_logging_version: String by project
 
 plugins {
     kotlin("multiplatform") version "1.9.10"
@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.10-SNAPSHOT"
+version = "1.11-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -123,4 +123,14 @@ tasks.register("multPackage") {
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     dependsOn(tasks.getByName("linuxX64Binaries"))
     dependsOn(tasks.getByName("mingwX64Binaries"))
+}
+
+tasks.register("publish-github") {
+    dependsOn(tasks.getByName("multPackage"))
+}
+
+task("dockerBuildx", Exec::class) {
+    commandLine(
+        "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest --push ."
+    )
 }

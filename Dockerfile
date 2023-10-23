@@ -1,25 +1,21 @@
-#FROM alpine
-#WORKDIR /cf-ddns/
-#RUN apk add gcompat curl libgcc libc6-compat
-#
-#COPY build/bin/linuxX64/releaseExecutable/cf-ddns.kexe .
-#CMD ["./cf-ddns.kexe"]
-
-
 FROM debian:stable-slim
 WORKDIR /cf-ddns/
-RUN apt update \
+ARG TARGETPLATFORM
+ARG CF_DDNS_VERSION
+
+COPY build/bin/*/releaseExecutable/cf-ddns*.kexe ./temp/
+
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    mv ./temp/cf-ddns-linux-arm64-"$CF_DDNS_VERSION".kexe ./cf-ddns.kexe; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    mv ./temp/cf-ddns-linux-x64-"$CF_DDNS_VERSION".kexe ./cf-ddns.kexe; \
+    else \
+    echo "Unsupported platform"; \
+    && rm -rf temp \
+    && apt update \
     && apt install curl -y \
     && apt clean autoclean \
     && apt autoremove --yes \
-    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
 
-COPY build/bin/linuxX64/releaseExecutable/cf-ddns.kexe .
 CMD ["./cf-ddns.kexe"]
-
-
-#FROM gcr.io/distroless/base-debian11
-#WORKDIR /cf-ddns/
-#
-#COPY build/bin/linuxX64/releaseExecutable/cf-ddns.kexe .
-#CMD ["./cf-ddns.kexe"]
