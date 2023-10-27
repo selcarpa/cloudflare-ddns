@@ -26,10 +26,7 @@ jobs:
         run: sudo apt update && sudo apt install libcurl4-openssl-dev
 
       - name: Execute with Gradle
-        with:
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
-        run: bash gradlew -PdockerUserName=%docker_username% -PdockerPassword=%docker_password% publish-github
+        run: bash gradlew -PdockerUserName=selcarpa -PdockerPassword=passw publish-github
 
       - uses: ncipollo/release-action@v1
         with:
