@@ -27,8 +27,7 @@ kotlin.targets.withType<KotlinNativeTarget> {
     }
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-kotlin {
+@OptIn(ExperimentalKotlinGradlePluginApi::class) kotlin {
     targetHierarchy.default()
     fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}, targetName: String) {
         binaries {
@@ -58,8 +57,7 @@ kotlin {
 //    }
     jvm {
         withJava()
-        @Suppress("UNUSED_VARIABLE")
-        val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
+        @Suppress("UNUSED_VARIABLE") val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             doFirst {
                 manifest {
@@ -69,8 +67,7 @@ kotlin {
             }
         }
     }
-    @Suppress("UNUSED_VARIABLE")
-    sourceSets {
+    @Suppress("UNUSED_VARIABLE") sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -86,8 +83,7 @@ kotlin {
         }
 
         val nativeMain by getting {
-            dependencies {
-            }
+            dependencies {}
         }
 
         val linuxX64Main by getting {
@@ -128,20 +124,31 @@ tasks.register("multPackage") {
 tasks.register("publish-github") {
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("dockerBuildx"))
-    dependsOn(tasks.getByName("dockerLogin"))
     dependsOn(tasks.getByName("dockerPush"))
 }
 
 task("dockerBuildx", Exec::class) {
+    dependsOn(tasks.getByName("multPackage"))
     commandLine(
-        "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest ."
+        //command line args should be an array of strings
+        //ref: https://stackoverflow.com/a/51564974
+        "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest .".split(
+            " "
+        )
     )
 }
-task("dockerLogin",Exec::class){
-    commandLine("docker login -u ${properties["dockerUserName"]} -p ${properties["dockerPassword"]}")
+task("dockerLogin", Exec::class) {
+    commandLine(
+        "docker",
+        "login",
+        "-u",
+        "${properties["dockerUserName"]}",
+        "-p",
+        "${properties["dockerPassword"]}"
+    )
 }
 
-tasks.register("dockerPush",Exec::class){
+task("dockerPush", Exec::class) {
     dependsOn(tasks.getByName("dockerLogin"))
-    commandLine("docker push selcarpa/cloudflare-ddns --all-tags")
+    commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
 }
