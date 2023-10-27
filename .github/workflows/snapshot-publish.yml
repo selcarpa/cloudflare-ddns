@@ -26,6 +26,7 @@ jobs:
         run: sudo apt update && sudo apt install libcurl4-openssl-dev
 
       - name: Execute with Gradle
+        uses: actions/setup-java@v3
         with:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
