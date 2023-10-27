@@ -23,15 +23,14 @@ jobs:
       - name: Install cURL Headers
         run: sudo apt update && sudo apt install libcurl4-openssl-dev
 
-      - name: Build with Gradle
+      - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
       - name: Execute with Gradle
         with:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
-        run:
-          ./gradlew -PdockerUserName=%docker_username% -PdockerPassword=%docker_password% publish-github
+        run: ./gradlew -PdockerUserName=%docker_username% -PdockerPassword=%docker_password% publish-github
 
 
       - uses: ncipollo/release-action@v1
