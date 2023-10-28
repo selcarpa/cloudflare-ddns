@@ -138,13 +138,15 @@ task("dockerBuildx", Exec::class) {
     )
 }
 task("dockerLogin", Exec::class) {
+    val dockerUserName=System.getenv("dockerUserName")
+    val dockerPassword=System.getenv("dockerPassword")
     commandLine(
         "docker",
         "login",
         "-u",
-        "${properties["dockerUserName"]}",
+        dockerUserName,
         "-p",
-        "${properties["dockerPassword"]}"
+        dockerPassword
     )
 }
 
