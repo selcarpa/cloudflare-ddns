@@ -26,6 +26,7 @@ jobs:
         run: sudo apt update && sudo apt install libcurl4-openssl-dev
 
       - name: Execute with Gradle
+        shell: bash
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
