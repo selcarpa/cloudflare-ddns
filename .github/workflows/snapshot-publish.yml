@@ -30,7 +30,8 @@ jobs:
         with:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: bash gradlew -PdockerUserName="$DOCKER_USERNAME" -PdockerPassword="$DOCKER_PASSWORD" publish-github
+        run: | 
+          ./gradlew -PdockerUserName="$DOCKER_USERNAME" -PdockerPassword="$DOCKER_PASSWORD" publish-github
 
       - uses: ncipollo/release-action@v1
         with:
