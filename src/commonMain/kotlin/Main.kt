@@ -242,7 +242,7 @@ private fun DdnsItem.run(ip: String) = runBlocking {
     if (this@run.exists) {
         if (ip != this@run.content // if ip on cloudflare not equals to current ip
             || this@run.proxied != this@run.domain.properties!!.proxied  // if proxied on cloudflare not equals to config
-            || this@run.ttl != this@run.domain.properties!!.ttl // if ttl on cloudflare not equals to config
+//            || this@run.ttl != this@run.domain.properties!!.ttl // if ttl on cloudflare not equals to config
         ) {
             logger.info {
                 "update ${this@run.domain.name} to ${this@run.type.name} $ip ${proxiedString()}"

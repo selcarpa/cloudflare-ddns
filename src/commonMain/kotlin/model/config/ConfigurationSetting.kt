@@ -114,5 +114,3 @@ data class Domain(
     val name: String,
     var properties: Properties?,
 )
-
-
