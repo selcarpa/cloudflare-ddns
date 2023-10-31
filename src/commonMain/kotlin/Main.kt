@@ -17,7 +17,7 @@ import model.config.Config.ConfigurationUrl
 import model.config.Domain
 import model.request.CloudflareBody
 import model.request.DnsRecord
-import model.request.UpdateDnsRecordRequest
+import model.request.DnsRecordRequest
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -242,28 +242,31 @@ private fun DdnsItem.run(ip: String) = runBlocking {
     if (this@run.exists) {
         if (ip != this@run.content // if ip on cloudflare not equals to current ip
             || this@run.proxied != this@run.domain.properties!!.proxied  // if proxied on cloudflare not equals to config
-//            || this@run.ttl != this@run.domain.properties!!.ttl // if ttl on cloudflare not equals to config
+            || (this@run.domain.properties!!.ttlCheck!! && this@run.ttl != this@run.domain.properties!!.ttl) //check if ttl on cloudflare not equals to config when ttlCheck on
         ) {
+            logger.debug {
+                "old record for ${this@run.domain.name} is $ip ${proxiedString(this@run.proxied!!)} (${this@run.ttl}), target is ${this@run.content} ${this@run.domain.properties!!.proxied} (${this@run.domain.properties!!.ttl})"
+            }
             logger.info {
-                "update ${this@run.domain.name} to ${this@run.type.name} $ip ${proxiedString()}"
+                "update ${this@run.domain.name} to ${this@run.type.name} $ip ${proxiedString(this@run.domain.properties!!.proxied!!)} (${this@run.domain.properties!!.ttl})"
             }
             updateDns(ip, this@run, true)
             return@runBlocking
         }
 
         logger.info {
-            "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip ${proxiedString()}"
+            "checked: ${this@run.type} ${this@run.domain.name} already been resolve to $ip ${proxiedString(this@run.domain.properties!!.proxied!!)}"
         }
         return@runBlocking
     } else {
         logger.info {
-            "create ${this@run.domain.name} with ${this@run.type.name} $ip ${proxiedString()}"
+            "create ${this@run.domain.name} with ${this@run.type.name} $ip ${proxiedString(this@run.domain.properties!!.proxied!!)}"
         }
         updateDns(ip, this@run)
     }
 }
 
-private fun DdnsItem.proxiedString() = if (this.domain.properties!!.proxied == false) "not proxied" else {
+private fun proxiedString(proxied: Boolean) = if (proxied) "not proxied" else {
     "proxied"
 }
 
@@ -278,25 +281,14 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     ) {
         setBody(
             json.encodeToString(
-                if (update) {
-                    UpdateDnsRecordRequest(
-                        type = ddnsItem.type.name,
-                        name = ddnsItem.domain.name,
-                        content = ip,
-                        ttl = ddnsItem.ttl!!,
-                        proxied = ddnsItem.proxied!!,
-                        tags = emptyList()
-                    )
-                } else {
-                    UpdateDnsRecordRequest(
-                        type = ddnsItem.type.name,
-                        name = ddnsItem.domain.name,
-                        content = ip,
-                        ttl = ddnsItem.domain.properties!!.ttl!!,
-                        proxied = ddnsItem.domain.properties!!.proxied!!,
-                        tags = emptyList()
-                    )
-                }
+                DnsRecordRequest(
+                    type = ddnsItem.type.name,
+                    name = ddnsItem.domain.name,
+                    content = ip,
+                    ttl = ddnsItem.domain.properties!!.ttl!!,
+                    proxied = ddnsItem.domain.properties!!.proxied!!,
+                    tags = emptyList()
+                )
             )
         )
         headers {
@@ -315,9 +307,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
         logger.error { cloudflareBody.errors }
     }
     if (update) {
-        logger.info { "updated ${ddnsItem.domain.name} to $ip successful" }
+        logger.info { "updated ${ddnsItem.domain.name} successful" }
     } else {
-        logger.info { "created ${ddnsItem.domain.name} with $ip successful" }
+        logger.info { "created ${ddnsItem.domain.name} successful" }
     }
     ddnsItem.init(cloudflareBody.result!!)
 }

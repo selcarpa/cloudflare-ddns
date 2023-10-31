@@ -86,7 +86,8 @@ object Config {
             v6 = properties?.v6 ?: common.v6 ?: false,
             ttl = properties?.ttl ?: common.ttl ?: 300,
             autoPurge = properties?.autoPurge ?: common.autoPurge ?: false,
-            proxied = properties?.proxied ?: common.proxied ?: false
+            proxied = properties?.proxied ?: common.proxied ?: false,
+            ttlCheck = properties?.ttlCheck ?: common.ttlCheck ?: false
         )
     }
 }
@@ -101,7 +102,8 @@ data class Properties(
     val v6: Boolean?,
     val ttl: Int?,
     val autoPurge: Boolean?,
-    val proxied: Boolean?
+    val proxied: Boolean?,
+    val ttlCheck: Boolean?
 )
 
 @Serializable
