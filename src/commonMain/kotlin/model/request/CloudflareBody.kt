@@ -37,7 +37,7 @@ data class DnsRecord(
 )
 
 @Serializable
-data class UpdateDnsRecordRequest(
+data class DnsRecordRequest(
     var type: String = "",
     var name: String = "",
     var content: String = "",
