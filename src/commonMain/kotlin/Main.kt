@@ -93,12 +93,12 @@ private fun CoroutineScope.mainTask() {
         it.domain.properties!!.ttl
     }.forEach { (ttl, d) ->
         d.filter { it.domain.properties?.v4 ?: false }.groupBy {
-            it.domain.properties!!.checkUrlV4
+            it.domain.properties!!.checkUrlV4!!
         }.forEach {
             launchTask(ttl, it)
         }
         d.filter { it.domain.properties?.v6 ?: false }.groupBy {
-            it.domain.properties!!.checkUrlV6
+            it.domain.properties!!.checkUrlV6!!
         }.forEach {
             launchTask(ttl, it)
         }
@@ -111,19 +111,23 @@ private fun CoroutineScope.mainTask() {
             launch(Dispatchers.Default) {
                 if (it.properties?.v4 != true) {
                     launch(Dispatchers.Default) {
-                        it.toV4DdnsItems().purge()
+                        it.toV4DdnsItems().purge(true, "Ipv4 record is disabled in config file")
                     }
                 } else if (it.properties?.v6 != true) {
                     launch(Dispatchers.Default) {
-                        it.toV6DdnsItems().purge()
+                        it.toV6DdnsItems().purge(true, "Ipv6 record is disabled in config file")
                     }
                 }
             }
         }
 }
 
-fun DdnsItem.purge() = runBlocking {
-    while (true) {
+/**
+ * purge task
+ * @param loopExec if true, it will loop to purge until purge successful
+ */
+fun DdnsItem.purge(loopExec: Boolean = false, reason: String) = runBlocking {
+    do {
         if (!this@purge.inited && !this@purge.init()) {
             logger.error { "purge ${this@purge.domain.name} ${this@purge.type.name} failed, try after ${this@purge.domain.properties!!.ttl}" }
         }
@@ -132,12 +136,12 @@ fun DdnsItem.purge() = runBlocking {
             logger.info { "no exists record for ${this@purge.domain.name} ${this@purge.type.name}, purge task stopped" }
             break
         }
-
+        logger.info { "start purge ${this@purge.domain.name} ${this@purge.type.name} cause: $reason" }
         if (purge(this@purge)) {
             break
         }
         delay(this@purge.domain.properties!!.ttl!!.seconds)
-    }
+    } while (loopExec)
 }
 
 suspend fun purge(ddnsItem: DdnsItem): Boolean {
@@ -162,12 +166,12 @@ suspend fun purge(ddnsItem: DdnsItem): Boolean {
 }
 
 private fun CoroutineScope.launchTask(
-    ttl: Int?, it: Map.Entry<String?, List<DdnsItem>>
+    ttl: Int?, it: Map.Entry<String, List<DdnsItem>>
 ) {
     launch(Dispatchers.Default) {
         delayCall(ttl!!.seconds) {
             ddns(it.value) {
-                getIp(it.key!!)
+                getIp(it.key)
             }
         }
     }
@@ -178,11 +182,11 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
         //https://kotlinlang.org/docs/coroutines-and-channels.html#using-the-outer-scope-s-context
         //https://kotlinlang.org/docs/exception-handling.html
         launch(Dispatchers.Default) {
-            try {
+            runCatching {
                 exec()
-            } catch (e: Exception) {
-                logger.error(e) {
-                    e.message
+            }.onFailure {
+                logger.error(it) {
+                    it.message
                 }
             }
         }
@@ -192,10 +196,24 @@ fun delayCall(duration: Duration, exec: () -> Unit) = runBlocking {
 
 private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = runBlocking {
     logger.debug { "start ${ddnsItems[0].type} ddns task for ${(ddnsItems.joinToString(",") { it.domain.name })}" }
-    val ip = ipSupplier()
-
-    ddnsItems.forEach {
-        it.run(ip)
+    runCatching {
+        ipSupplier()
+    }.onSuccess {
+        ddnsItems.forEach { ddnsItem ->
+            ddnsItem.run(it)
+        }
+    }.onFailure { e ->
+        if (debug) {
+            logger.error(e) { e.message }
+        } else {
+            logger.error { e.message }
+        }
+        ddnsItems.forEach {
+            logger.warn { "ddns task for ${it.domain.name} ${it.type.name} failed, try after ${it.domain.properties!!.ttl}" }
+        }
+        ddnsItems.filter { it.domain.properties?.autoPurge!! }.forEach { ddnsItem ->
+            ddnsItem.purge(reason = "get ip failed, so purge it")
+        }
     }
 }
 
