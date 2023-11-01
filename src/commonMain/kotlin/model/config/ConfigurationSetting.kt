@@ -74,20 +74,29 @@ object Config {
 
 
     private fun propertiesCover(domain: Domain, common: Properties): Properties {
-        val properties = domain.properties
+        val domainProperties = domain.properties
+        val proxied = domainProperties?.proxied ?: common.proxied ?: false
         return Properties(
-            zoneId = properties?.zoneId ?: common.zoneId
+            zoneId = domainProperties?.zoneId ?: common.zoneId
             ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
-            authKey = properties?.authKey ?: common.authKey
+            authKey = domainProperties?.authKey ?: common.authKey
             ?: throw IllegalArgumentException("no authKey specified for ${domain.name}"),
-            checkUrlV4 = properties?.checkUrlV4 ?: common.checkUrlV4 ?: "https://api4.ipify.org?format=text",
-            checkUrlV6 = properties?.checkUrlV6 ?: common.checkUrlV6 ?: "https://api6.ipify.org?format=text",
-            v4 = properties?.v4 ?: common.v4 ?: true,
-            v6 = properties?.v6 ?: common.v6 ?: false,
-            ttl = properties?.ttl ?: common.ttl ?: 300,
-            autoPurge = properties?.autoPurge ?: common.autoPurge ?: false,
-            proxied = properties?.proxied ?: common.proxied ?: false,
-            ttlCheck = properties?.ttlCheck ?: common.ttlCheck ?: false
+            checkUrlV4 = domainProperties?.checkUrlV4 ?: common.checkUrlV4 ?: "https://api4.ipify.org?format=text",
+            checkUrlV6 = domainProperties?.checkUrlV6 ?: common.checkUrlV6 ?: "https://api6.ipify.org?format=text",
+            v4 = domainProperties?.v4 ?: common.v4 ?: true,
+            v6 = domainProperties?.v6 ?: common.v6 ?: false,
+            ttl = domainProperties?.ttl ?: common.ttl ?: 300,
+            autoPurge = domainProperties?.autoPurge ?: common.autoPurge ?: false,
+            proxied = proxied,
+            ttlCheck = run {
+                val ttlCheck = domainProperties?.ttlCheck ?: common.ttlCheck ?: false
+                if (ttlCheck && proxied) {
+                    logger.warn { "ttlCheck is not supported when proxied is true, set ttlCheck to false" }
+                    false
+                } else {
+                    ttlCheck
+                }
+            }
         )
     }
 }

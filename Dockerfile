@@ -19,4 +19,4 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     && apt autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-CMD ["./cf-ddns.kexe"]
+ENTRYPOINT  ["/cf-ddns/cf-ddns.kexe"]

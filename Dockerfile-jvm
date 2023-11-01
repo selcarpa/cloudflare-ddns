@@ -1,0 +1,5 @@
+FROM gcr.io/distroless/java17-debian12
+WORKDIR /cf-ddns/
+COPY build/libs/*-SNAPSHOT.jar ./cf-ddns.jar
+
+ENTRYPOINT ["java","-jar","/cf-ddns/cf-ddns.jar"]
