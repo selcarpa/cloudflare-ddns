@@ -148,7 +148,7 @@ tasks.register("publish-github") {
     dependsOn(tasks.getByName("dockerPush"))
 }
 
-task("dockerBuildx", Exec::class) {
+tasks.register<Exec>("dockerBuildx") {
     group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
     commandLine(
@@ -159,7 +159,7 @@ task("dockerBuildx", Exec::class) {
         )
     )
 }
-task("dockerLogin", Exec::class) {
+tasks.register<Exec>("dockerLogin") {
     group = "cf-ddns"
     commandLine(
         "docker",
@@ -171,7 +171,7 @@ task("dockerLogin", Exec::class) {
     )
 }
 
-task("dockerPush", Exec::class) {
+tasks.register<Exec>("dockerPush") {
     group = "cf-ddns"
     dependsOn(tasks.getByName("dockerLogin"))
     commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
