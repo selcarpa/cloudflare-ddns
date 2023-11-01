@@ -121,6 +121,7 @@ tasks.register("multPackage") {
 }
 
 tasks.register<Copy>("linuxArm64CopyAndCompile"){
+    group = "cf-ddns"
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
     into("${buildDir}/release1/")
@@ -128,6 +129,7 @@ tasks.register<Copy>("linuxArm64CopyAndCompile"){
 }
 
 tasks.register<Copy>("linuxX64CopyAndCompile"){
+    group = "cf-ddns"
     dependsOn(tasks.getByName("linuxX64Binaries"))
     from("${buildDir}/bin/linuxX64/releaseExecutable/")
     into("${buildDir}/release1/")
@@ -135,17 +137,23 @@ tasks.register<Copy>("linuxX64CopyAndCompile"){
 }
 
 tasks.register<Copy>("mingwX64CopyAndCompile"){
+    group = "cf-ddns"
     dependsOn(tasks.getByName("mingwX64Binaries"))
     from("${buildDir}/bin/mingwX64/releaseExecutable/")
     into("${buildDir}/release1/")
     rename("cf-ddns", "cf-ddns-windows-x64-${version}")
 }
 
-tasks.register("publish-github") {
+tasks.register("publishGithub") {
+    group = "cf-ddns"
+    dependsOn(tasks.getByName("prePublish"))
+    dependsOn(tasks.getByName("dockerPush"))
+}
+
+tasks.register("prePublish"){
     group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("dockerBuildx"))
-    dependsOn(tasks.getByName("dockerPush"))
 }
 
 tasks.register<Exec>("dockerBuildx") {
