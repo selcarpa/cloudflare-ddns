@@ -2,8 +2,10 @@ name: build
 
 on:
   push:
-    tags:
-      - '!**'
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
 jobs:
   build:
     runs-on: ubuntu-latest
