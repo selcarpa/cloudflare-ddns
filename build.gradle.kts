@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.14-SNAPSHOT"
+version = "1.15-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -147,17 +147,18 @@ tasks.register<Copy>("mingwX64CopyAndCompile"){
 tasks.register("publishGithub") {
     group = "cf-ddns"
     dependsOn(tasks.getByName("prePublish"))
-    dependsOn(tasks.getByName("dockerPush"))
+    dependsOn(tasks.getByName("nativeDockerPush"))
+    dependsOn(tasks.getByName("jvmDockerPush"))
 }
 
 tasks.register("prePublish"){
     group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
-    dependsOn(tasks.getByName("dockerBuildx"))
+    dependsOn(tasks.getByName("nativeDockerBuildx"))
     dependsOn(tasks.getByName("jvmDockerBuildx"))
 }
 
-tasks.register<Exec>("dockerBuildx") {
+tasks.register<Exec>("nativeDockerBuildx") {
     group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
     commandLine(
@@ -191,8 +192,17 @@ tasks.register<Exec>("dockerLogin") {
     )
 }
 
-tasks.register<Exec>("dockerPush") {
+tasks.register<Exec>("nativeDockerPush") {
     group = "cf-ddns"
     dependsOn(tasks.getByName("dockerLogin"))
+    dependsOn(tasks.getByName("nativeDockerBuildx"))
     commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
+}
+
+
+tasks.register<Exec>("jvmDockerPush") {
+    group = "cf-ddns"
+    dependsOn(tasks.getByName("dockerLogin"))
+    dependsOn(tasks.getByName("jvmDockerBuildx"))
+    commandLine("docker push selcarpa/cloudflare-ddns-jvm --all-tags".split(" "))
 }
