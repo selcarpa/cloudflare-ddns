@@ -1,7 +1,9 @@
 name: build
 
-on: push
-
+on:
+  push:
+    tags-ignore:
+      - '*-SNAPSHOT'
 jobs:
   build:
     runs-on: ubuntu-latest
