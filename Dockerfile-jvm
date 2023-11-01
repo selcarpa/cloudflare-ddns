@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java17-debian12
+FROM eclipse-temurin:11-jre
 WORKDIR /cf-ddns/
 COPY build/libs/*-SNAPSHOT.jar ./cf-ddns.jar
 

@@ -125,7 +125,7 @@ tasks.register<Copy>("linuxArm64CopyAndCompile"){
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
     into("${buildDir}/release1/")
-    rename("cf-ddns", "cf-ddns-arm64-${version}")
+    rename("cf-ddns", "cf-ddns-linux-arm64-${version}")
 }
 
 tasks.register<Copy>("linuxX64CopyAndCompile"){
@@ -154,6 +154,7 @@ tasks.register("prePublish"){
     group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("dockerBuildx"))
+    dependsOn(tasks.getByName("jvmDockerBuildx"))
 }
 
 tasks.register<Exec>("dockerBuildx") {
@@ -163,6 +164,17 @@ tasks.register<Exec>("dockerBuildx") {
         //command line args should be an array of strings
         //ref: https://stackoverflow.com/a/51564974
         "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest .".split(
+            " "
+        )
+    )
+}
+tasks.register<Exec>("jvmDockerBuildx"){
+    group = "cf-ddns"
+    dependsOn(tasks.getByName("multPackage"))
+    commandLine(
+        //command line args should be an array of strings
+        //ref: https://stackoverflow.com/a/51564974
+        "docker buildx build --platform linux/amd64 linux/arm/v7 linux/arm64/v8 linux/ppc64le linux/s390x windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f /Dockerfile-jvm .".split(
             " "
         )
     )
