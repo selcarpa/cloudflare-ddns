@@ -3,7 +3,7 @@ WORKDIR /cf-ddns/
 ARG TARGETPLATFORM
 ARG CF_DDNS_VERSION
 
-COPY build/bin/*/releaseExecutable/cf-ddns*.kexe ./temp/
+COPY build/release1/cf-ddns*.*exe ./temp/
 
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
         mv "./temp/cf-ddns-linux-arm64-$CF_DDNS_VERSION.kexe"  "./cf-ddns.kexe"; \
