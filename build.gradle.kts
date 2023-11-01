@@ -6,6 +6,7 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val okio_version: String by project
 val kotlin_logging_version: String by project
+val taskGroupName = "cf-ddns"
 
 plugins {
     kotlin("multiplatform") version "1.9.10"
@@ -112,7 +113,7 @@ kotlin.targets.withType<KotlinNativeTarget> {
 }
 
 tasks.register("multPackage") {
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("clean"))
     dependsOn(tasks.getByName("jvmJar"))
     dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
@@ -121,45 +122,45 @@ tasks.register("multPackage") {
 }
 
 tasks.register<Copy>("linuxArm64CopyAndCompile"){
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
     into("${buildDir}/release1/")
-    rename("cf-ddns", "cf-ddns-linux-arm64-${version}")
+    rename(taskGroupName, "cf-ddns-linux-arm64-${version}")
 }
 
 tasks.register<Copy>("linuxX64CopyAndCompile"){
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("linuxX64Binaries"))
     from("${buildDir}/bin/linuxX64/releaseExecutable/")
     into("${buildDir}/release1/")
-    rename("cf-ddns", "cf-ddns-linux-x64-${version}")
+    rename(taskGroupName, "cf-ddns-linux-x64-${version}")
 }
 
 tasks.register<Copy>("mingwX64CopyAndCompile"){
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("mingwX64Binaries"))
     from("${buildDir}/bin/mingwX64/releaseExecutable/")
     into("${buildDir}/release1/")
-    rename("cf-ddns", "cf-ddns-windows-x64-${version}")
+    rename(taskGroupName, "cf-ddns-windows-x64-${version}")
 }
 
 tasks.register("publishGithub") {
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("prePublish"))
     dependsOn(tasks.getByName("nativeDockerPush"))
-    dependsOn(tasks.getByName("jvmDockerPush"))
+//    dependsOn(tasks.getByName("jvmDockerPush"))
 }
 
 tasks.register("prePublish"){
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
-    dependsOn(tasks.getByName("jvmDockerBuildx"))
+//    dependsOn(tasks.getByName("jvmDockerBuildx"))
 }
 
 tasks.register<Exec>("nativeDockerBuildx") {
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     commandLine(
         //command line args should be an array of strings
@@ -170,18 +171,18 @@ tasks.register<Exec>("nativeDockerBuildx") {
     )
 }
 tasks.register<Exec>("jvmDockerBuildx"){
-    group = "cf-ddns"
-    dependsOn(tasks.getByName("multPackage"))
+    group = taskGroupName
+    dependsOn(tasks.getByName("jvmJar"))
     commandLine(
         //command line args should be an array of strings
         //ref: https://stackoverflow.com/a/51564974
-        "docker buildx build --platform linux/amd64 linux/arm/v7 linux/arm64/v8 linux/ppc64le linux/s390x windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f /Dockerfile-jvm .".split(
+        "docker buildx build --platform  linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
             " "
         )
     )
 }
 tasks.register<Exec>("dockerLogin") {
-    group = "cf-ddns"
+    group = taskGroupName
     commandLine(
         "docker",
         "login",
@@ -193,7 +194,7 @@ tasks.register<Exec>("dockerLogin") {
 }
 
 tasks.register<Exec>("nativeDockerPush") {
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("dockerLogin"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
     commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
@@ -201,7 +202,7 @@ tasks.register<Exec>("nativeDockerPush") {
 
 
 tasks.register<Exec>("jvmDockerPush") {
-    group = "cf-ddns"
+    group = taskGroupName
     dependsOn(tasks.getByName("dockerLogin"))
     dependsOn(tasks.getByName("jvmDockerBuildx"))
     commandLine("docker push selcarpa/cloudflare-ddns-jvm --all-tags".split(" "))
