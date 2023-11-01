@@ -3,7 +3,7 @@ name: build
 on:
   push:
     tags-ignore:
-      - '*-SNAPSHOT'
+      - '**'
 jobs:
   build:
     runs-on: ubuntu-latest
