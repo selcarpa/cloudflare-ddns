@@ -29,25 +29,23 @@ kotlin.targets.withType<KotlinNativeTarget> {
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class) kotlin {
     targetHierarchy.default()
-    fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}, targetName: String) {
+    fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}) {
         binaries {
             executable {
                 entryPoint = "main"
                 custom()
-                baseName = "${rootProject.name}-${targetName}-${version}"
-
             }
         }
     }
 
     linuxX64 {
-        config(targetName = "linux-x64")
+        config()
     }
     linuxArm64 {
-        config(targetName = "linux-arm64")
+        config()
     }
     mingwX64 {
-        config(targetName = "windows-x64")
+        config()
     }
 //    macosArm64 {
 //        config(targetName = "macos-arm64")
@@ -114,20 +112,44 @@ kotlin.targets.withType<KotlinNativeTarget> {
 }
 
 tasks.register("multPackage") {
+    group = "cf-ddns"
     dependsOn(tasks.getByName("clean"))
     dependsOn(tasks.getByName("jvmJar"))
+    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
+    dependsOn(tasks.getByName("linuxX64CopyAndCompile"))
+    dependsOn(tasks.getByName("mingwX64CopyAndCompile"))
+}
+
+tasks.register<Copy>("linuxArm64CopyAndCompile"){
     dependsOn(tasks.getByName("linuxArm64Binaries"))
+    from("${buildDir}/bin/linuxArm64/releaseExecutable/")
+    into("${buildDir}/release1/")
+    rename("cf-ddns", "cf-ddns-arm64-${version}")
+}
+
+tasks.register<Copy>("linuxX64CopyAndCompile"){
     dependsOn(tasks.getByName("linuxX64Binaries"))
+    from("${buildDir}/bin/linuxX64/releaseExecutable/")
+    into("${buildDir}/release1/")
+    rename("cf-ddns", "cf-ddns-linux-x64-${version}")
+}
+
+tasks.register<Copy>("mingwX64CopyAndCompile"){
     dependsOn(tasks.getByName("mingwX64Binaries"))
+    from("${buildDir}/bin/mingwX64/releaseExecutable/")
+    into("${buildDir}/release1/")
+    rename("cf-ddns", "cf-ddns-windows-x64-${version}")
 }
 
 tasks.register("publish-github") {
+    group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("dockerBuildx"))
     dependsOn(tasks.getByName("dockerPush"))
 }
 
 task("dockerBuildx", Exec::class) {
+    group = "cf-ddns"
     dependsOn(tasks.getByName("multPackage"))
     commandLine(
         //command line args should be an array of strings
@@ -138,6 +160,7 @@ task("dockerBuildx", Exec::class) {
     )
 }
 task("dockerLogin", Exec::class) {
+    group = "cf-ddns"
     commandLine(
         "docker",
         "login",
@@ -149,6 +172,7 @@ task("dockerLogin", Exec::class) {
 }
 
 task("dockerPush", Exec::class) {
+    group = "cf-ddns"
     dependsOn(tasks.getByName("dockerLogin"))
     commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
 }
