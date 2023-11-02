@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jre
+FROM eclipse-temurin:17-jre
 WORKDIR /cf-ddns/
 COPY build/libs/*-SNAPSHOT.jar ./cf-ddns.jar
 
