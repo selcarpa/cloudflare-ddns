@@ -15,15 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         name: checkout
-#
-#       - name: Remove old docker
-#         run: for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
-#
-#       - name: Install docker-ce
-#         run: sudo apt-get update && sudo apt-get install ca-certificates curl gnupg && sudo install -m 0755 -d /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg && sudo chmod a+r /etc/apt/keyrings/docker.gpg && echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null && sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-#
-#       - name: Enable crossBuild
-#         run: docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name multi-arch-builder
+
+      - name: Enable crossBuild
+        run: docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name multi-arch-builder
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -36,8 +30,5 @@ jobs:
 
       - name: Build with Gradle
         shell: bash
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           ./gradlew prePublish
