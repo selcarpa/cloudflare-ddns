@@ -156,7 +156,7 @@ tasks.register("prePublish"){
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
-//    dependsOn(tasks.getByName("jvmDockerBuildx"))
+    dependsOn(tasks.getByName("jvmDockerBuildx"))
 }
 
 tasks.register<Exec>("nativeDockerBuildx") {
