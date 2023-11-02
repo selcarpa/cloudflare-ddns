@@ -158,7 +158,7 @@ tasks.register<Exec>("nativeDockerBuildx") {
     if(properties["release"]=="true"){
         dependsOn(tasks.getByName("dockerLogin"))
     }
-    commandLine(
+    val arguments= listOfNotNull(
         "docker",
         "buildx",
         "build",
@@ -166,16 +166,19 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "linux/amd64",
         "-t",
         "selcarpa/cloudflare-ddns:$version",
+        "--build-arg",
+        "CF_DDNS_VERSION=$version",
         if(properties["release"]=="true"){
             "--push"
         }else{
-            ""
+            null
         },
-        "--build-arg",
-        "CF_DDNS_VERSION=$version",
         "-t",
         "selcarpa/cloudflare-ddns:latest",
         "."
+    )
+    commandLine(
+        arguments
     )
 }
 tasks.register<Exec>("jvmDockerBuildx") {
@@ -184,7 +187,7 @@ tasks.register<Exec>("jvmDockerBuildx") {
     if(properties["release"]=="true"){
         dependsOn(tasks.getByName("dockerLogin"))
     }
-    commandLine(
+    val arguments= listOfNotNull(
         "docker",
         "buildx",
         "build",
@@ -197,13 +200,16 @@ tasks.register<Exec>("jvmDockerBuildx") {
         if(properties["release"]=="true"){
             "--push"
         }else{
-            ""
+            null
         },
         "-t",
         "selcarpa/cloudflare-ddns-jvm:latest",
         "-f",
         "./Dockerfile-jvm",
         "."
+    )
+    commandLine(
+        arguments
     )
 }
 
