@@ -121,7 +121,7 @@ tasks.register("multPackage") {
     dependsOn(tasks.getByName("mingwX64CopyAndCompile"))
 }
 
-tasks.register<Copy>("linuxArm64CopyAndCompile"){
+tasks.register<Copy>("linuxArm64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
@@ -129,7 +129,7 @@ tasks.register<Copy>("linuxArm64CopyAndCompile"){
     rename(taskGroupName, "cf-ddns-linux-arm64-${version}")
 }
 
-tasks.register<Copy>("linuxX64CopyAndCompile"){
+tasks.register<Copy>("linuxX64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("linuxX64Binaries"))
     from("${buildDir}/bin/linuxX64/releaseExecutable/")
@@ -137,7 +137,7 @@ tasks.register<Copy>("linuxX64CopyAndCompile"){
     rename(taskGroupName, "cf-ddns-linux-x64-${version}")
 }
 
-tasks.register<Copy>("mingwX64CopyAndCompile"){
+tasks.register<Copy>("mingwX64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("mingwX64Binaries"))
     from("${buildDir}/bin/mingwX64/releaseExecutable/")
@@ -145,14 +145,7 @@ tasks.register<Copy>("mingwX64CopyAndCompile"){
     rename(taskGroupName, "cf-ddns-windows-x64-${version}")
 }
 
-tasks.register("publishGithub") {
-    group = taskGroupName
-    dependsOn(tasks.getByName("prePublish"))
-    dependsOn(tasks.getByName("nativeDockerPush"))
-    dependsOn(tasks.getByName("jvmDockerBuildxAndPush"))
-}
-
-tasks.register("prePublish"){
+tasks.register("github") {
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
@@ -163,30 +156,48 @@ tasks.register<Exec>("nativeDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     commandLine(
-        //command line args should be an array of strings
-        //ref: https://stackoverflow.com/a/51564974
-        "docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns:latest .".split(
-            " "
-        )
+        "docker",
+        "buildx",
+        "build",
+        "--platform",
+        "linux/amd64",
+        "-t",
+        "selcarpa/cloudflare-ddns:$version",
+        if(properties["release"]=="true"){
+            "--push"
+        }else{
+            ""
+        },
+        "--build-arg",
+        "CF_DDNS_VERSION=$version",
+        "-t",
+        "selcarpa/cloudflare-ddns:latest",
+        "."
     )
 }
-tasks.register<Exec>("jvmDockerBuildx"){
+tasks.register<Exec>("jvmDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
     commandLine(
-        "docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
-            " "
-        )
-    )
-}
-tasks.register<Exec>("jvmDockerBuildxAndPush"){
-    group = taskGroupName
-    dependsOn(tasks.getByName("jvmJar"))
-    dependsOn(tasks.getByName("dockerLogin"))
-    commandLine(
-        "docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version --push -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
-            " "
-        )
+        "docker",
+        "buildx",
+        "build",
+        "--platform",
+        "linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64",
+        "-t",
+        "selcarpa/cloudflare-ddns-jvm:$version",
+        "--build-arg",
+        "CF_DDNS_VERSION=$version",
+        if(properties["release"]=="true"){
+            "--push"
+        }else{
+            ""
+        },
+        "-t",
+        "selcarpa/cloudflare-ddns-jvm:latest",
+        "-f",
+        "./Dockerfile-jvm",
+        "."
     )
 }
 
@@ -200,11 +211,4 @@ tasks.register<Exec>("dockerLogin") {
         "-p",
         "${properties["dockerPassword"]}"
     )
-}
-
-tasks.register<Exec>("nativeDockerPush") {
-    group = taskGroupName
-    dependsOn(tasks.getByName("dockerLogin"))
-    dependsOn(tasks.getByName("nativeDockerBuildx"))
-    commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
 }

@@ -31,4 +31,4 @@ jobs:
       - name: Build with Gradle
         shell: bash
         run: |
-          ./gradlew prePublish
+          ./gradlew github
