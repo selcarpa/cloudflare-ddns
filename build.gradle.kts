@@ -149,7 +149,7 @@ tasks.register("publishGithub") {
     group = taskGroupName
     dependsOn(tasks.getByName("prePublish"))
     dependsOn(tasks.getByName("nativeDockerPush"))
-//    dependsOn(tasks.getByName("jvmDockerPush"))
+    dependsOn(tasks.getByName("jvmDockerBuildxAndPush"))
 }
 
 tasks.register("prePublish"){
@@ -174,13 +174,22 @@ tasks.register<Exec>("jvmDockerBuildx"){
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
     commandLine(
-        //command line args should be an array of strings
-        //ref: https://stackoverflow.com/a/51564974
         "docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
             " "
         )
     )
 }
+tasks.register<Exec>("jvmDockerBuildxAndPush"){
+    group = taskGroupName
+    dependsOn(tasks.getByName("jvmJar"))
+    dependsOn(tasks.getByName("dockerLogin"))
+    commandLine(
+        "docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version --push -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
+            " "
+        )
+    )
+}
+
 tasks.register<Exec>("dockerLogin") {
     group = taskGroupName
     commandLine(
@@ -198,12 +207,4 @@ tasks.register<Exec>("nativeDockerPush") {
     dependsOn(tasks.getByName("dockerLogin"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
     commandLine("docker push selcarpa/cloudflare-ddns --all-tags".split(" "))
-}
-
-
-tasks.register<Exec>("jvmDockerPush") {
-    group = taskGroupName
-    dependsOn(tasks.getByName("dockerLogin"))
-    dependsOn(tasks.getByName("jvmDockerBuildx"))
-    commandLine("docker push selcarpa/cloudflare-ddns-jvm --all-tags".split(" "))
 }
