@@ -176,7 +176,7 @@ tasks.register<Exec>("jvmDockerBuildx"){
     commandLine(
         //command line args should be an array of strings
         //ref: https://stackoverflow.com/a/51564974
-        "docker buildx build --platform  linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
+        "docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64 -t selcarpa/cloudflare-ddns-jvm:$version --build-arg CF_DDNS_VERSION=$version -t selcarpa/cloudflare-ddns-jvm:latest -f ./Dockerfile-jvm .".split(
             " "
         )
     )
