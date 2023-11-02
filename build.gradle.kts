@@ -155,7 +155,9 @@ tasks.register("github") {
 tasks.register<Exec>("nativeDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
-    dependsOn(tasks.getByName("dockerLogin"))
+    if(properties["release"]=="true"){
+        dependsOn(tasks.getByName("dockerLogin"))
+    }
     commandLine(
         "docker",
         "buildx",
@@ -179,7 +181,9 @@ tasks.register<Exec>("nativeDockerBuildx") {
 tasks.register<Exec>("jvmDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-    dependsOn(tasks.getByName("dockerLogin"))
+    if(properties["release"]=="true"){
+        dependsOn(tasks.getByName("dockerLogin"))
+    }
     commandLine(
         "docker",
         "buildx",
