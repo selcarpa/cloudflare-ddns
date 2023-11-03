@@ -12,8 +12,12 @@ class CloudflareBody<D> {
 
     @SerialName("result_info")
     var resultInfo: ResultInfo? = null
-
 }
+
+@Serializable
+data class DeleteDns(
+    var id: String
+)
 
 @Serializable
 data class ResultInfo(

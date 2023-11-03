@@ -16,6 +16,7 @@ import model.config.Config.Configuration
 import model.config.Config.ConfigurationUrl
 import model.config.Domain
 import model.request.CloudflareBody
+import model.request.DeleteDns
 import model.request.DnsRecord
 import model.request.DnsRecordRequest
 import kotlin.time.Duration
@@ -177,7 +178,7 @@ suspend fun DdnsItem.doPurge(): Boolean {
         }
 
     }
-    val cloudflareBody = httpResponse.body<CloudflareBody<Any>>()
+    val cloudflareBody = httpResponse.body<CloudflareBody<DeleteDns>>()
     if (!cloudflareBody.success) {
         logger.error { cloudflareBody.errors }
         return false
