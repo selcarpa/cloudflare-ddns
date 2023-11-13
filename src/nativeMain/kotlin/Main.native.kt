@@ -1,7 +1,9 @@
-import io.github.oshai.kotlinlogging.*
+import io.github.oshai.kotlinlogging.FormattingAppender
+import io.github.oshai.kotlinlogging.KLoggingEvent
+import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
+import io.github.oshai.kotlinlogging.Level
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import platform.posix.fprintf
@@ -18,9 +20,11 @@ actual fun exitGracefully() {
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun logAppenderSet() {
-    KotlinLoggingConfiguration.appender= object : FormattingAppender() {
+    KotlinLoggingConfiguration.appender = object : FormattingAppender() {
         override fun logFormattedMessage(loggingEvent: KLoggingEvent, formattedMessage: Any?) {
-            val timeStr= Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            val timeStr =
+                "${now.year}-${now.monthNumber}-${now.dayOfMonth} ${now.hour}:${now.minute}:${now.second},${now.nanosecond / 1000000}"
             if (loggingEvent.level == Level.ERROR) {
                 fprintf(stderr, "$timeStr: $formattedMessage\n")
             } else {
