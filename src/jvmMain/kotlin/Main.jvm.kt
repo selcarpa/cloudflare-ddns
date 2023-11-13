@@ -32,3 +32,6 @@ actual fun debugLogSet() {
 actual fun exitGracefully(){
     exitProcess(1)
 }
+
+actual fun logAppenderSet() {
+}

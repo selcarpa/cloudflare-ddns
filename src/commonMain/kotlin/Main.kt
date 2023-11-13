@@ -71,6 +71,8 @@ fun main(args: Array<String>) = runBlocking {
             }
         }
 
+        logAppenderSet()
+
         logger.debug { "debug-mode online" }
         logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
@@ -86,6 +88,8 @@ fun main(args: Array<String>) = runBlocking {
         }
     }
 }
+
+expect fun logAppenderSet()
 
 /**
  * to launch ddns task and purge task
