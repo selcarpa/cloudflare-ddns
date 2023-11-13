@@ -24,7 +24,13 @@ actual fun logAppenderSet() {
         override fun logFormattedMessage(loggingEvent: KLoggingEvent, formattedMessage: Any?) {
             val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
             val timeStr =
-                "${now.year}-${now.monthNumber}-${now.dayOfMonth} ${now.hour}:${now.minute}:${now.second},${now.nanosecond / 1000000}"
+                "${now.year.toString().padStart(4, '0')}-${
+                    now.monthNumber.toString().padStart(2, '0')
+                }-${now.dayOfMonth.toString().padStart(2, '0')} ${
+                    now.hour.toString().padStart(2, '0')
+                }:${now.minute.toString().padStart(2, '0')}:${
+                    now.second.toString().padStart(2, '0')
+                },${(now.nanosecond / 1000000).toString().padStart(3, '0')}"
             if (loggingEvent.level == Level.ERROR) {
                 fprintf(stderr, "$timeStr: $formattedMessage\n")
             } else {
