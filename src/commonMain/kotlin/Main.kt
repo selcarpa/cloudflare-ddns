@@ -76,6 +76,16 @@ fun main(args: Array<String>) = runBlocking {
         logger.debug { "debug-mode online" }
         logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
+        //if args contains purge, it will purge all dns record and exit
+        if (args.contains("purge")) {
+            Configuration.domains.forEach { domain ->
+                domain.toDDnsItems(true).forEach { ddnsItem ->
+                    ddnsItem.purge(true, "purge task")
+                }
+            }
+            exitGracefully()
+        }
+
         mainTask()
     } catch (e: Exception) {
         if (e is CFDdnsException) {
@@ -267,15 +277,16 @@ private fun Domain.toV6DdnsItems(): DdnsItem {
 
 /**
  * convert domain to ddns item list
+ * @param ignoreDisable if true, it will ignore disable flag in config file
  */
-private fun Domain.toDDnsItems(): List<DdnsItem> {
+private fun Domain.toDDnsItems(ignoreDisable: Boolean = false): List<DdnsItem> {
     return listOfNotNull(
-        if (this.properties!!.v4!!) {
+        if (this.properties!!.v4!! || ignoreDisable) {
             this.toV4DdnsItems()
         } else {
             null
         },
-        if (this.properties!!.v6!!) {
+        if (this.properties!!.v6!! || ignoreDisable) {
             this.toV6DdnsItems()
         } else {
             null
