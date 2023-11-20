@@ -115,7 +115,6 @@ kotlin.targets.withType<KotlinNativeTarget> {
 
 tasks.register("multPackage") {
     group = taskGroupName
-    dependsOn(tasks.getByName("clean"))
     dependsOn(tasks.getByName("jvmJar"))
     dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
     dependsOn(tasks.getByName("linuxX64CopyAndCompile"))
