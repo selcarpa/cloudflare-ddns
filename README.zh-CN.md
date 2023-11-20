@@ -17,7 +17,7 @@
 
 ### native版本
 
-1. 前往[release](./releases/latest)下载当前系统最新版本，重命名为cf-ddns
+1. 前往[release](../../releases/latest)下载当前系统最新版本，重命名为cf-ddns
 2. 在文件所在同级目录创建文件cf-ddns-config.json，内容如下：
     ```json5
     {
@@ -43,7 +43,7 @@
 
 ### java版本
 
-1. 前往[release](./releases/latest)下载当前最新jar版本，重命名为cf-ddns.jar
+1. 前往[release](../../releases/latest)下载当前最新jar版本，重命名为cf-ddns.jar
 2. 在文件所在同级目录创建文件cf-ddns-config.json，内容如下：
     ```json5
     {
