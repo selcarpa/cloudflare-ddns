@@ -322,8 +322,8 @@ private fun DdnsItem.run(ip: String) = runBlocking {
 /**
  * get proxied string
  */
-private fun proxiedString(proxied: Boolean) = if (proxied) "not proxied" else {
-    "proxied"
+private fun proxiedString(proxied: Boolean) = if (proxied) "proxied" else {
+    "not proxied"
 }
 
 /**
