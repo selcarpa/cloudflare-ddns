@@ -9,7 +9,7 @@ val kotlin_logging_version: String by project
 val taskGroupName = "cf-ddns"
 
 plugins {
-    kotlin("multiplatform") version "1.9.20"
+    kotlin("multiplatform") version "1.9.21"
     id("io.ktor.plugin") version "2.3.6"
     kotlin("plugin.serialization") version "1.9.21"
 }
