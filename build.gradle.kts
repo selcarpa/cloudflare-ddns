@@ -11,7 +11,7 @@ val taskGroupName = "cf-ddns"
 plugins {
     kotlin("multiplatform") version "1.9.21"
     id("io.ktor.plugin") version "2.3.6"
-    kotlin("plugin.serialization") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.21"
 }
 
 group = "one.tain"
@@ -106,7 +106,7 @@ kotlin.targets.withType<KotlinNativeTarget> {
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation("ch.qos.logback:logback-classic:1.4.7")
+                implementation("ch.qos.logback:logback-classic:1.4.11")
             }
         }
 
