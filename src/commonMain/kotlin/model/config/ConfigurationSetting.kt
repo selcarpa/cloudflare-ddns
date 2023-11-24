@@ -17,6 +17,7 @@ private val json = Json {
     isLenient = true
     ignoreUnknownKeys = true
     explicitNulls = false
+    allowTrailingComma = true
 }
 
 private val toml = Toml {
