@@ -71,8 +71,20 @@ fun main(args: Array<String>) = runBlocking {
             }
         }
 
+        logAppenderSet()
+
         logger.debug { "debug-mode online" }
         logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
+
+        //if args contains purge, it will purge all dns record and exit
+        if (args.contains("purge")) {
+            Configuration.domains.forEach { domain ->
+                domain.toDDnsItems(true).forEach { ddnsItem ->
+                    ddnsItem.purge(true, "purge task")
+                }
+            }
+            exitGracefully()
+        }
 
         mainTask()
     } catch (e: Exception) {
@@ -86,6 +98,8 @@ fun main(args: Array<String>) = runBlocking {
         }
     }
 }
+
+expect fun logAppenderSet()
 
 /**
  * to launch ddns task and purge task
@@ -263,15 +277,16 @@ private fun Domain.toV6DdnsItems(): DdnsItem {
 
 /**
  * convert domain to ddns item list
+ * @param ignoreDisable if true, it will ignore disable flag in config file
  */
-private fun Domain.toDDnsItems(): List<DdnsItem> {
+private fun Domain.toDDnsItems(ignoreDisable: Boolean = false): List<DdnsItem> {
     return listOfNotNull(
-        if (this.properties!!.v4!!) {
+        if (this.properties!!.v4!! || ignoreDisable) {
             this.toV4DdnsItems()
         } else {
             null
         },
-        if (this.properties!!.v6!!) {
+        if (this.properties!!.v6!! || ignoreDisable) {
             this.toV6DdnsItems()
         } else {
             null
@@ -318,8 +333,8 @@ private fun DdnsItem.run(ip: String) = runBlocking {
 /**
  * get proxied string
  */
-private fun proxiedString(proxied: Boolean) = if (proxied) "not proxied" else {
-    "proxied"
+private fun proxiedString(proxied: Boolean) = if (proxied) "proxied" else {
+    "not proxied"
 }
 
 /**

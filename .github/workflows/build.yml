@@ -26,9 +26,13 @@ jobs:
           java-version: '17'
 
       - name: Install cURL Headers
-        run: sudo apt update && sudo apt install libcurl4-openssl-dev
+        run: sudo apt update && sudo apt install libcurl4-openssl-dev tree -y
 
       - name: Build with Gradle
         shell: bash
         run: |
           ./gradlew github
+
+      - name: Print files
+        run: |
+          tree

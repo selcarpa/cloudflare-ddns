@@ -10,12 +10,12 @@ val taskGroupName = "cf-ddns"
 
 plugins {
     kotlin("multiplatform") version "1.9.20"
-    id("io.ktor.plugin") version "2.3.5"
+    id("io.ktor.plugin") version "2.3.6"
     kotlin("plugin.serialization") version "1.9.0"
 }
 
 group = "one.tain"
-version = "1.16-SNAPSHOT"
+version = "1.19-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -72,11 +72,12 @@ kotlin.targets.withType<KotlinNativeTarget> {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
@@ -114,7 +115,6 @@ kotlin.targets.withType<KotlinNativeTarget> {
 
 tasks.register("multPackage") {
     group = taskGroupName
-    dependsOn(tasks.getByName("clean"))
     dependsOn(tasks.getByName("jvmJar"))
     dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
     dependsOn(tasks.getByName("linuxX64CopyAndCompile"))
