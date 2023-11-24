@@ -145,10 +145,10 @@
 
 ### Domain
 
-| 字段名        | 类型         | 必填 | 说明                                     |
-|------------|------------|----|----------------------------------------|
-| name       | 字符串        | 是  | 域名                                     |
-| properties | Properties | 否  | 域名配置，如果存在，会覆盖common中的配置，否则使用common中的配置 |
+| 字段名        | 类型         | 必填 | 说明                                               |
+|------------|------------|----|--------------------------------------------------|
+| name       | 字符串        | 是  | 域名                                               |
+| properties | Properties | 否  | 域名配置，如果存在，会覆盖common中的配置，如果此处部任何配置为空，使用common中的配置 |
 
 ### Properties
 
@@ -160,7 +160,7 @@
 | checkUrlV6 | 字符串  | 否  | 检查ipv6的url，默认为https://api6.ipify.org?format=text |
 | v4         | 布尔类型 | 否  | 是否启用ipv4，默认为true                                 |
 | v6         | 布尔类型 | 否  | 是否启用ipv6，默认为false                                |
-| ttl        | 整型数字 | 否  | DNS记录的ttl，默认为1分钟                                 |
+| ttl        | 整型数字 | 否  | DNS记录的ttl，秒数，默认为300                              |
 | autoPurge  | 布尔类型 | 否  | 是否自动清理DNS记录，默认为false                             |
 | proxied    | 布尔类型 | 否  | 是否启用cloudflare的代理，默认为false                       |
 | ttlCheck   | 布尔类型 | 否  | 是否启用ttl检查，默认为false                               |
