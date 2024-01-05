@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.Executable
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
@@ -28,8 +27,8 @@ kotlin.targets.withType<KotlinNativeTarget> {
     }
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class) kotlin {
-    targetHierarchy.default()
+kotlin {
+    applyDefaultHierarchyTemplate()
     fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}) {
         binaries {
             executable {
@@ -39,15 +38,15 @@ kotlin.targets.withType<KotlinNativeTarget> {
         }
     }
 
-    linuxX64 {
-        config()
-    }
-    linuxArm64 {
-        config()
-    }
-    mingwX64 {
-        config()
-    }
+        linuxX64 {
+            config()
+        }
+        linuxArm64 {
+            config()
+        }
+        mingwX64 {
+            config()
+        }
 //    macosArm64 {
 //        config(targetName = "macos-arm64")
 //    }
@@ -72,13 +71,13 @@ kotlin.targets.withType<KotlinNativeTarget> {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+                implementation("io.ktor:ktor-client-logging:$ktor_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
-                implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
 
