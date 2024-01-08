@@ -10,7 +10,7 @@ val taskGroupName = "cf-ddns"
 plugins {
     kotlin("multiplatform") version "1.9.22"
     id("io.ktor.plugin") version "2.3.7"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 group = "one.tain"
