@@ -1,6 +1,9 @@
 pluginManagement {
     repositories {
-        mavenCentral()
+        maven {
+            url = uri("https://reposilite.beyond.tain.one/releases")
+        }
+//        mavenCentral()
         gradlePluginPortal()
     }
 }

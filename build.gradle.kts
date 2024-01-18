@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.Executable
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
@@ -10,7 +9,7 @@ val taskGroupName = "cf-ddns"
 
 plugins {
     kotlin("multiplatform") version "1.9.21"
-    id("io.ktor.plugin") version "2.3.6"
+    id("io.ktor.plugin") version "3.0.0-beta-1"
     kotlin("plugin.serialization") version "1.9.21"
 }
 
@@ -18,7 +17,10 @@ group = "one.tain"
 version = "1.20-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+    maven {
+        url = uri("https://reposilite.beyond.tain.one/releases")
+    }
+//    mavenCentral()
     google()
 }
 
@@ -28,8 +30,8 @@ kotlin.targets.withType<KotlinNativeTarget> {
     }
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class) kotlin {
-    targetHierarchy.default()
+kotlin {
+    kotlin.applyDefaultHierarchyTemplate()
     fun KotlinNativeTarget.config(custom: Executable.() -> Unit = {}) {
         binaries {
             executable {
@@ -82,9 +84,6 @@ kotlin.targets.withType<KotlinNativeTarget> {
             }
         }
 
-        val nativeMain by getting {
-            dependencies {}
-        }
 
         val linuxX64Main by getting {
             dependencies {
@@ -94,13 +93,13 @@ kotlin.targets.withType<KotlinNativeTarget> {
 
         val mingwX64Main by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-winhttp:$ktor_version")
+                implementation("io.ktor:ktor-client-curl:$ktor_version")
             }
         }
 
         val linuxArm64Main by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-cio:$ktor_version")
+                implementation("io.ktor:ktor-client-curl:$ktor_version")
             }
         }
         val jvmMain by getting {
@@ -155,10 +154,10 @@ tasks.register("github") {
 tasks.register<Exec>("nativeDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
-    if(properties["release"]=="true"){
+    if (properties["release"] == "true") {
         dependsOn(tasks.getByName("dockerLogin"))
     }
-    val arguments= listOfNotNull(
+    val arguments = listOfNotNull(
         "docker",
         "buildx",
         "build",
@@ -168,9 +167,9 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "selcarpa/cloudflare-ddns:$version",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
-        if(properties["release"]=="true"){
+        if (properties["release"] == "true") {
             "--push"
-        }else{
+        } else {
             null
         },
         "-t",
@@ -184,10 +183,10 @@ tasks.register<Exec>("nativeDockerBuildx") {
 tasks.register<Exec>("jvmDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-    if(properties["release"]=="true"){
+    if (properties["release"] == "true") {
         dependsOn(tasks.getByName("dockerLogin"))
     }
-    val arguments= listOfNotNull(
+    val arguments = listOfNotNull(
         "docker",
         "buildx",
         "build",
@@ -197,9 +196,9 @@ tasks.register<Exec>("jvmDockerBuildx") {
         "selcarpa/cloudflare-ddns-jvm:$version",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
-        if(properties["release"]=="true"){
+        if (properties["release"] == "true") {
             "--push"
-        }else{
+        } else {
             null
         },
         "-t",
@@ -216,11 +215,6 @@ tasks.register<Exec>("jvmDockerBuildx") {
 tasks.register<Exec>("dockerLogin") {
     group = taskGroupName
     commandLine(
-        "docker",
-        "login",
-        "-u",
-        "${properties["dockerUserName"]}",
-        "-p",
-        "${properties["dockerPassword"]}"
+        "docker", "login", "-u", "${properties["dockerUserName"]}", "-p", "${properties["dockerPassword"]}"
     )
 }
