@@ -17,10 +17,10 @@ group = "one.tain"
 version = "1.20-SNAPSHOT"
 
 repositories {
-//    maven {
-//        url = uri("https://reposilite.beyond.tain.one/releases")
-//    }
-    mavenCentral()
+    maven {
+        url = uri("https://reposilite.beyond.tain.one/releases")
+    }
+//    mavenCentral()
     google()
 }
 
@@ -44,9 +44,9 @@ kotlin {
     linuxX64 {
         config()
     }
-//    linuxArm64 {
-//        config()
-//    }
+    linuxArm64 {
+        config()
+    }
     mingwX64 {
         config()
     }
@@ -79,7 +79,7 @@ kotlin {
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
             }
         }
@@ -97,11 +97,11 @@ kotlin {
             }
         }
 
-//        val linuxArm64Main by getting {
-//            dependencies {
-//                implementation("io.ktor:ktor-client-curl:$ktor_version")
-//            }
-//        }
+        val linuxArm64Main by getting {
+            dependencies {
+                implementation("io.ktor:ktor-client-curl:$ktor_version")
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
@@ -113,15 +113,14 @@ kotlin {
 }
 
 tasks.register("multPackage") {
-    description = "compile all targets"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-//    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
+    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
     dependsOn(tasks.getByName("linuxX64CopyAndCompile"))
     dependsOn(tasks.getByName("mingwX64CopyAndCompile"))
 }
 
-tasks.register<Copy>("linuxArm64CopyAndCompile") {//
+tasks.register<Copy>("linuxArm64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
