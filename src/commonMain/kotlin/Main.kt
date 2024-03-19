@@ -33,7 +33,7 @@ private val json = Json {
 }
 
 private var debug = false
-
+private var once = false
 
 private val client by lazy {
     HttpClient {
@@ -68,6 +68,9 @@ fun main(args: Array<String>) = runBlocking {
             if (it == "--debug") {
                 debug = true
                 debugLogSet()
+            }
+            if (it == "--once") {
+                once = true
             }
         }
 
@@ -147,9 +150,15 @@ private fun CoroutineScope.launchMainTask(
     ttl: Int?, it: Map.Entry<String, List<DdnsItem>>
 ) {
     launch(Dispatchers.Default) {
-        delayCall(ttl!!.seconds) {
+        if (once) {
             ddns(it.value) {
                 getIp(it.key)
+            }
+        } else {
+            delayCall(ttl!!.seconds) {
+                ddns(it.value) {
+                    getIp(it.key)
+                }
             }
         }
     }

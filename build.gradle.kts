@@ -8,9 +8,9 @@ val kotlin_logging_version: String by project
 val taskGroupName = "cf-ddns"
 
 plugins {
-    kotlin("multiplatform") version "1.9.22"
-    id("io.ktor.plugin") version "2.3.7"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("multiplatform") version "1.9.23"
+    id("io.ktor.plugin") version "3.0.0-beta-1"
+    kotlin("plugin.serialization") version "1.9.23"
 }
 
 group = "one.tain"
@@ -38,15 +38,15 @@ kotlin {
         }
     }
 
-        linuxX64 {
-            config()
-        }
-        linuxArm64 {
-            config()
-        }
-        mingwX64 {
-            config()
-        }
+    linuxX64 {
+        config()
+    }
+//    linuxArm64 {
+//        config()
+//    }
+    mingwX64 {
+        config()
+    }
 //    macosArm64 {
 //        config(targetName = "macos-arm64")
 //    }
@@ -77,7 +77,7 @@ kotlin {
                 implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
             }
         }
 
@@ -97,11 +97,11 @@ kotlin {
             }
         }
 
-        val linuxArm64Main by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-cio:$ktor_version")
-            }
-        }
+//        val linuxArm64Main by getting {
+//            dependencies {
+//                implementation("io.ktor:ktor-client-cio:$ktor_version")
+//            }
+//        }
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
@@ -115,7 +115,7 @@ kotlin {
 tasks.register("multPackage") {
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
+//    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
     dependsOn(tasks.getByName("linuxX64CopyAndCompile"))
     dependsOn(tasks.getByName("mingwX64CopyAndCompile"))
 }
@@ -154,10 +154,10 @@ tasks.register("github") {
 tasks.register<Exec>("nativeDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
-    if(properties["release"]=="true"){
+    if (properties["release"] == "true") {
         dependsOn(tasks.getByName("dockerLogin"))
     }
-    val arguments= listOfNotNull(
+    val arguments = listOfNotNull(
         "docker",
         "buildx",
         "build",
@@ -167,9 +167,9 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "selcarpa/cloudflare-ddns:$version",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
-        if(properties["release"]=="true"){
+        if (properties["release"] == "true") {
             "--push"
-        }else{
+        } else {
             null
         },
         "-t",
@@ -183,10 +183,10 @@ tasks.register<Exec>("nativeDockerBuildx") {
 tasks.register<Exec>("jvmDockerBuildx") {
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-    if(properties["release"]=="true"){
+    if (properties["release"] == "true") {
         dependsOn(tasks.getByName("dockerLogin"))
     }
-    val arguments= listOfNotNull(
+    val arguments = listOfNotNull(
         "docker",
         "buildx",
         "build",
@@ -196,9 +196,9 @@ tasks.register<Exec>("jvmDockerBuildx") {
         "selcarpa/cloudflare-ddns-jvm:$version",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
-        if(properties["release"]=="true"){
+        if (properties["release"] == "true") {
             "--push"
-        }else{
+        } else {
             null
         },
         "-t",
