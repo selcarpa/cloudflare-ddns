@@ -171,14 +171,14 @@ private fun CoroutineScope.launchMainTask(
 fun DdnsItem.purge(loopExec: Boolean = false, reason: String) = runBlocking {
     do {
         if (!this@purge.inited && !this@purge.init()) {
-            logger.error { "purge ${this@purge.domain.name} ${this@purge.type} failed, try after ${this@purge.domain.properties!!.ttl}" }
+            logger.error { "purge [${this@purge.domain.name} ${this@purge.type}] failed, try after ${this@purge.domain.properties!!.ttl}" }
         }
 
         if (!this@purge.exists) {
-            logger.info { "no exists record for ${this@purge.domain.name} ${this@purge.type}, purge task stopped" }
+            logger.info { "no exists record for [${this@purge.domain.name} ${this@purge.type}], purge task stopped" }
             break
         }
-        logger.info { "start purge ${this@purge.domain.name} ${this@purge.type} cause: $reason" }
+        logger.info { "start purge [${this@purge.domain.name} ${this@purge.type}] cause: $reason" }
         if (this@purge.doPurge()) {
             break
         }
@@ -249,7 +249,7 @@ private fun ddns(ddnsItems: List<DdnsItem>, ipSupplier: suspend () -> String) = 
             logger.error { e.message }
         }
         ddnsItems.forEach {
-            logger.warn { "ddns task for ${it.domain.name} ${it.type} failed, try after ${it.domain.properties!!.ttl}" }
+            logger.warn { "ddns task for [${it.domain.name} ${it.type}] failed, try after ${it.domain.properties!!.ttl}" }
         }
         ddnsItems.filter { it.domain.properties?.autoPurge!! }.forEach { ddnsItem ->
             ddnsItem.purge(reason = "get ip failed, so purge it")
@@ -318,22 +318,22 @@ private fun DdnsItem.run(ip: String) = runBlocking {
             || (this@run.domain.properties!!.ttlCheck!! && this@run.ttl != this@run.domain.properties!!.ttl) //check if ttl on cloudflare not equals to config when ttlCheck on
         ) {
             logger.debug {
-                "old record for ${this@run.domain.name} is $ip ${proxiedString(this@run.proxied!!)} (${this@run.ttl}), target is ${this@run.content} ${this@run.domain.properties!!.proxied} (${this@run.domain.properties!!.ttl})"
+                "old record: [${this@run.domain.name} $ip ${proxiedString(this@run.proxied!!)}] (ttl: ${this@run.ttl}), target: [${this@run.content} ${this@run.domain.properties!!.proxied}] (ttl: ${this@run.domain.properties!!.ttl})"
             }
             logger.info {
-                "update ${this@run.domain.name} to ${this@run.type} $ip ${proxiedString(this@run.domain.properties!!.proxied!!)} (${this@run.domain.properties!!.ttl})"
+                "update [${this@run.domain.name} ${this@run.type}] to [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}] (ttl: ${this@run.domain.properties!!.ttl})"
             }
             updateDns(ip, this@run, true)
             return@runBlocking
         }
 
         logger.info {
-            "checked: ${this@run.domain.name} ${this@run.type} already been resolve to $ip ${proxiedString(this@run.domain.properties!!.proxied!!)}"
+            "checked: [${this@run.domain.name} ${this@run.type}] already been resolve to [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
         return@runBlocking
     } else {
         logger.info {
-            "create ${this@run.domain.name} ${this@run.type} with $ip ${proxiedString(this@run.domain.properties!!.proxied!!)}"
+            "create [${this@run.domain.name} ${this@run.type}] with [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
         updateDns(ip, this@run)
     }
@@ -386,9 +386,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
         logger.error { cloudflareBody.errors }
     }
     if (update) {
-        logger.info { "updated ${ddnsItem.domain.name} successful" }
+        logger.info { "updated [${ddnsItem.domain.name}] successful" }
     } else {
-        logger.info { "created ${ddnsItem.domain.name} successful" }
+        logger.info { "created [${ddnsItem.domain.name}] successful" }
     }
     ddnsItem.init(cloudflareBody.result!!)
 }
@@ -427,7 +427,7 @@ private suspend fun DdnsItem.init(): Boolean {
         init(cloudflareBody.result!!.first())
         true
     } else {
-        logger.info { "no exists ${this@init.domain.name} ${this@init.type} record found" }
+        logger.info { "no exists [${this@init.domain.name} ${this@init.type}] record found" }
         true
     }
 
