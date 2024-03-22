@@ -85,54 +85,72 @@ fun main(args: Array<String>) = runBlocking {
         logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
         if (gen) {
-            if (ConfigurationUrl!=null){
-                logger.warn { "configuration file is specified, -gen will ignore it" }
-            }
-            var zoneId: String? = null
-            var authKey: String? = null
-            var domain: String? = null
-            var v4: Boolean? = null
-            var v6: Boolean? = null
-            args.forEach {
-                if (it.startsWith("-zoneId")) {
-                    zoneId = it.replace("-zoneId=", "")
-                }
-                if (it.startsWith("-authKey")) {
-                    authKey = it.replace("-authKey=", "")
-                }
-                if (it.startsWith("-domain")) {
-                    domain = it.replace("-domain=", "")
-                }
-            }
-            if (zoneId == null || authKey == null || domain == null) {
-                logger.error { "zoneId, authKey, domain must be specified" }
-                exitGracefully()
-            }
-            genConfiguration(domain, zoneId, authKey, v4, v6)
+            gen(args)
         }
 
 
         //if args contains purge, it will purge all dns record and exit
-        if (args.contains("purge")) {
-            Configuration.domains.forEach { domain ->
-                domain.toDDnsItems(true).forEach { ddnsItem ->
-                    ddnsItem.purge(true, "purge task")
-                }
-            }
-            exitGracefully()
+        if (args.contains("-purge")) {
+            purge()
         }
 
         mainTask()
     } catch (e: Exception) {
-        if (e is CFDdnsException) {
-            exitGracefully()
-        } else {
-            logger.error(e) {
-                e.message
-            }
-            exitGracefully()
+        exceptionCatch(e)
+    }
+}
+
+private fun purge() {
+    Configuration.domains.forEach { domain ->
+        domain.toDDnsItems(true).forEach { ddnsItem ->
+            ddnsItem.purge(true, "purge task")
         }
     }
+    exitGracefully()
+}
+
+private fun exceptionCatch(e: Exception) {
+    if (e is CFDdnsException) {
+        exitGracefully()
+    } else {
+        logger.error(e) {
+            e.message
+        }
+        exitGracefully()
+    }
+}
+
+private fun gen(args: Array<String>) {
+    if (ConfigurationUrl != null) {
+        logger.warn { "configuration file is specified, -gen will ignore it" }
+    }
+    var zoneId: String? = null
+    var authKey: String? = null
+    var domain: String? = null
+    var v4: Boolean? = null
+    var v6: Boolean? = null
+    args.forEach {
+        if (it.startsWith("-zoneId")) {
+            zoneId = it.replace("-zoneId=", "")
+        }
+        if (it.startsWith("-authKey")) {
+            authKey = it.replace("-authKey=", "")
+        }
+        if (it.startsWith("-domain")) {
+            domain = it.replace("-domain=", "")
+        }
+        if (it.startsWith("-v4")) {
+            v4 = it.replace("-v4=", "").toBoolean()
+        }
+        if (it.startsWith("-v6")) {
+            v6 = it.replace("-v6=", "").toBoolean()
+        }
+    }
+    if (zoneId == null || authKey == null || domain == null) {
+        logger.error { "zoneId, authKey, domain must be specified" }
+        exitGracefully()
+    }
+    genConfiguration(domain, zoneId, authKey, v4, v6)
 }
 
 expect fun logAppenderSet()
