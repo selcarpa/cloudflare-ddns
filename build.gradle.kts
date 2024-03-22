@@ -113,6 +113,7 @@ kotlin {
 }
 
 tasks.register("multPackage") {
+    description = "Package all targets"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
 //    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
@@ -121,6 +122,7 @@ tasks.register("multPackage") {
 }
 
 tasks.register<Copy>("linuxArm64CopyAndCompile") {
+    description = "Copy and compile linuxArm64 binaries"
     group = taskGroupName
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
@@ -129,6 +131,7 @@ tasks.register<Copy>("linuxArm64CopyAndCompile") {
 }
 
 tasks.register<Copy>("linuxX64CopyAndCompile") {
+    description = "Copy and compile linuxX64 binaries"
     group = taskGroupName
     dependsOn(tasks.getByName("linuxX64Binaries"))
     from("${buildDir}/bin/linuxX64/releaseExecutable/")
@@ -137,6 +140,7 @@ tasks.register<Copy>("linuxX64CopyAndCompile") {
 }
 
 tasks.register<Copy>("mingwX64CopyAndCompile") {
+    description = "Copy and compile mingwX64 binaries"
     group = taskGroupName
     dependsOn(tasks.getByName("mingwX64Binaries"))
     from("${buildDir}/bin/mingwX64/releaseExecutable/")
@@ -145,6 +149,7 @@ tasks.register<Copy>("mingwX64CopyAndCompile") {
 }
 
 tasks.register("github") {
+    description = "Package all targets"
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
@@ -152,6 +157,7 @@ tasks.register("github") {
 }
 
 tasks.register<Exec>("nativeDockerBuildx") {
+    description = "Build and push native docker images"
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     if (properties["release"] == "true") {
@@ -181,6 +187,7 @@ tasks.register<Exec>("nativeDockerBuildx") {
     )
 }
 tasks.register<Exec>("jvmDockerBuildx") {
+    description = "Build and push jvm docker images"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
     if (properties["release"] == "true") {
@@ -213,6 +220,7 @@ tasks.register<Exec>("jvmDockerBuildx") {
 }
 
 tasks.register<Exec>("dockerLogin") {
+    description = "Login to docker hub"
     group = taskGroupName
     commandLine(
         "docker",
