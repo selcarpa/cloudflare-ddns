@@ -12,54 +12,51 @@ This is a simple application for updating the current public IP address to Cloud
 
 The project provides:
 
-1. Native version (including docker support), supports Windows (x86), Linux (x86)
-2. Java version (including docker support), supports jvm-17
+1. Native version (including docker support), supports Windows (x86), Linux (x86)~~, Linux (Arm), waiting for dependency updates~~
+2. Java version (including docker support), supports jvm-17 compatible platform
+
+Features provided:
+
+- Support ipv4/ipv6
+- Super quick to start and generate configuration files
+- Detailed custom configuration, including:
+    - Multi-domain name support, cross-zone support, cross-account support
+    - Customize the URL for checking ipv4/ipv6 addresses
+- Quick functions
+    - One-time operation
+    - Clean DNS records
 
 ## Quick start
 
 ### native version
 
-1. Create the file cf-ddns-config.json in the same directory as the file, with the following content:
-     ```json5
-     {
-         "common": {
-           "zoneId": "",//Fill in the zone id of cloudflare
-           "authKey": "",//Fill in the cloudflare token
-         },
-         "domains": [
-           {
-             "name": "cf-ddns.tain.one"//Domain name used for ddns
-           }
-         ]
-       }
-     ```
-2. Go to [release](../../releases/latest) to download the latest version of the current system and rename it to cf-ddns
-3. Run
+1. Go to [release](../../releases/latest) to download the latest version of the current system and rename it to cf-ddns (Windows: cf-ddns.exe)
+2. Open the terminal under the current path and run
     ```shell
-    ./cf-ddns -c=cf-ddns-config.json
+    #Linux
+    ./cf-ddns -gen -zoneId=xxxXXxxXXXxzoneIdxxxXXXx -authKey=XXXxauthKeyxxxXXXx -domain=ex.example.com -v4=true -v6=false
+    #Windows
+    ./cf-ddns.exe -gen -zoneId=xxxXXxxXXXxzoneIdxxxXXXx -authKey=XXXxauthKeyxxxXXXx -domain=ex.example.com -v4=true -v6=false
     ```
+3. Observe whether DNS records in Cloudflare are updated
 
 <details>
 
 <summary>Start using Docker</summary>
 
-#### native-docker version
+### native-docker version
 
-1. Same as the first step of the native version
-2. Create docker-compose.yml file
-   ```yaml
-   ---
-   version: "3"
-   services:
-     cf-ddns:
-       image: selcarpa/cloudflare-ddns:latest
-       container_name: cf-ddns
-       volumes:
-         - /path/to/config.json5:/app/config.json5  # Mount the configuration file. Note that /path/to/config.json5 needs to be replaced with the actual path.
-       restart: unless-stopped # Restart strategy
-       command: ["-c=/app/config.json5"] # Start command
+1. Create docker-compose.yml file
+    ```yaml
+    services:
+      cf-ddns:
+        image: selcarpa/cloudflare-ddns:latest
+        network_mode: "host"
+        container_name: cf-ddns
+        restart: unless-stopped # Restart strategy
+        command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # Start command
     ```
-3. Start
+2. Start
     ```shell
      docker-compose up -d
      ```
@@ -68,40 +65,51 @@ The project provides:
 
 <details>
 
-<summary>A Java version is also provided. The current version does not support so many system architectures and is only a preview</summary>
+<summary>A Java version is also provided.</summary>
 
 ### java version
 
-1. Same as the first step in the native version, create cf-ddns-config.json
-2. Go to [release](../../releases/latest) to download the latest jar version and rename it to cf-ddns.jar
-3. Run
+1. Go to [release](../../releases/latest) to download the latest jar version and rename it to cf-ddns.jar
+2. run
     ```shell
-    java -jar cf-ddns.jar -c=cf-ddns-config.json
+    java -jar -Xmx30m cf-ddns.jar -gen -zoneId=xxxXXxxXXXxzoneIdxxxXXXx -authKey=XXXxauthKeyxxxXXXx -domain=ex.example.com -v4=true -v6=false
     ```
 
 ### java-docker version
 
-1. Same as the first step of the native version
-2. Create docker-compose.yml file
+1. Create docker-compose.yml file
     ```yaml
-   ---
-   version: "3"
-   services:
-     cf-ddns:
-       image: selcarpa/cloudflare-ddns-jvm:latest
-       container_name: cf-ddns
-       volumes:
-         - /path/to/config.json5:/app/config.json5  # Mount the configuration file. Note that /path/to/config.json5 needs to be replaced with the actual path.
-       restart: unless-stopped # Restart strategy
-       command: ["-c=/app/config.json5"] # Start command
+    services:
+      cf-ddns:
+        image: selcarpa/cloudflare-ddns-jvm:latest
+        network_mode: "host"
+        container_name: cf-ddns
+        restart: unless-stopped # Restart strategy
+        command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # Start command
     ```
-3. Same as the third step of native-docker version
+2. Start
+    ```shell
+     docker-compose up -d
+     ```
 
 </details>
 
-## Configuration file
+## More features
 
-The configuration file supports toml and json/json5 formats
+### Custom start cloudflare-ddns
+
+Starting Cloudflare-ddns through the configuration file can achieve more functions, such as:
+
+- Multiple domain names support
+- Customize the URL for checking ipv4/ipv6 addresses
+- Custom ttl
+- Automatically clean DNS records
+- cloudflare proxy support
+- ttl check
+
+#### Write configuration file
+
+The configuration file supports toml and json/json5 formats. Here json5 is used as an example.
 
 ```json5
 //Complete example:
@@ -138,26 +146,26 @@ The configuration file supports toml and json/json5 formats
 }
 ```
 
-### The top level of the configuration file
+##### The top level of the configuration file
 
 | Field name | Type           | Required | Description               |
 |------------|----------------|----------|---------------------------|
 | domains    | Array (Domain) | Yes      | Domain name configuration |
 | common     | Properties     | Yes      | Common configuration      |
 
-### Domain
+##### Domain
 
 | Field name | Type       | Required | Description                                                                                                                                              |
 |------------|------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | name       | String     | yes      | domain name                                                                                                                                              |
 | properties | Properties | No       | Domain name configuration, if it exists, will overwrite the configuration in common. If any configuration here is empty, use the configuration in common |
 
-### Properties
+##### Properties
 
 | Field name | Type           | Required | Description                                                              |
 |------------|----------------|----------|--------------------------------------------------------------------------|
 | zoneId     | String         | yes      | zone id from cloudflare                                                  |
-| authKey    | String         | yes      | token from cloudflare                                                    |
+| authKey    | String         | yes      | authKey from cloudflare                                                  |
 | checkUrlV4 | String         | No       | Check the url of ipv4, the default is https://api4.ipify.org?format=text |
 | checkUrlV6 | String         | No       | Check the url of ipv6, the default is https://api6.ipify.org?format=text |
 | v4         | Boolean type   | No       | Whether to enable ipv4, the default is true                              |
@@ -166,3 +174,66 @@ The configuration file supports toml and json/json5 formats
 | autoPurge  | Boolean type   | No       | Whether to automatically clean up DNS records, the default is false      |
 | proxied    | Boolean type   | No       | Whether to enable cloudflare proxy, the default is false                 |
 | ttlCheck   | Boolean type   | No       | Whether to enable ttl check, the default is false                        |
+
+#### Start cloudflare-ddns
+
+### native version
+
+```shell
+#Linux
+./cf-ddns -c=config.json5
+# Windows
+./cf-ddns.exe -c=config.json5
+```
+
+<details>
+<summary>Docker version</summary>
+
+```yaml
+    services:
+      cf-ddns:
+        image: selcarpa/cloudflare-ddns:latest
+        network_mode: "host"
+        container_name: cf-ddns
+        volumes:
+          - /path/to/config.json5:/cf-ddn/config.json5 # Mount the configuration file. Note that /path/to/config.json5 needs to be replaced with the actual path.
+        restart: unless-stopped # Restart strategy
+        command: [ "-c=/cf-ddn/config.json5" ] # Start command
+```
+
+</details>
+
+### java version
+
+```shell
+java -jar -Xmx30m cf-ddns.jar -c=config.json5
+```
+
+<details>
+<summary>Docker version</summary>
+
+```yaml
+     services:
+       cf-ddns:
+         image: selcarpa/cloudflare-ddns-jvm:latest
+         network_mode: "host"
+         container_name: cf-ddns
+         volumes:
+           - /path/to/config.json5:/cf-ddns/config.json5 # Mount the configuration file. Note that /path/to/config.json5 needs to be replaced with the actual path.
+         restart: unless-stopped # Restart strategy
+         command: [ "-c=/cf-ddn/config.json5" ] # Start command
+```
+
+</details>
+
+### Startup parameters realize the function of single operation
+
+- `-once` will only be executed once and will not start the scheduled task
+- `-purge` cleans DNS records and does not start scheduled tasks
+- `-debug` turns on debug mode and will output more logs
+- `-gen` generates a configuration file template. This is the quick start command above and needs to be used with the following parameters.
+   - `-zoneId` zone id from Cloudflare, required
+   - `-authKey` authKey from Cloudflare, required
+   - `-domain` domain name, required
+   - `-v4` Whether to enable ipv4, optional, default is true
+   - `-v6` Whether to enable ipv6, optional, default is false

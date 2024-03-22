@@ -10,54 +10,52 @@
 
 项目提供：
 
-1. native版本（含docker支持），支持Windows(x86)、Linux(x86)
-2. java版本（含docker支持），支持jvm-17
+1. native版本（含docker支持），支持Windows(x86)、Linux(x86)~~、Linux(Arm)等待依赖更新中~~
+2. java版本（含docker支持），支持jvm-17兼容平台
+
+功能提供：
+
+- 支持ipv4/ipv6
+- 超级快速开始并且生成配置文件
+- 详细的自定义配置，包含：
+    - 多域名支持，跨zone支持，跨账号支持
+    - 自定义检查ipv4/ipv6地址的url
+- 快捷功能
+    - 一次性操作
+    - 清理DNS记录
 
 ## 快速开始
 
 ### native版本
 
-1. 在文件所在同级目录创建文件cf-ddns-config.json，内容如下：
-    ```json5
-    {
-        "common": {
-          "zoneId": "",//填入cloudflare的zone id
-          "authKey": "",//填入cloudflare的token
-        },
-        "domains": [
-          {
-            "name": "cf-ddns.tain.one"//用于ddns的域名
-          }
-        ]
-      }
-    ```
-2. 前往[release](../../releases/latest)下载当前系统最新版本，重命名为cf-ddns
-3. 运行
+1. 前往[release](../../releases/latest)下载当前系统最新版本，重命名为cf-ddns(Windows为cf-ddns.exe)
+2. 当前路径下打开终端，运行
    ```shell
-   ./cf-ddns -c=cf-ddns-config.json
+    #Linux
+    ./cf-ddns -gen -zoneId=xxxXXxxXXXxzoneIdxxxXXXx -authKey=XXXxauthKeyxxxXXXx -domain=ex.example.com -v4=true -v6=false
+    #Windows
+    ./cf-ddns.exe -gen -zoneId=xxxXXxxXXXxzoneIdxxxXXXx -authKey=XXXxauthKeyxxxXXXx -domain=ex.example.com -v4=true -v6=false
    ```
+3. 观察Cloudflare的DNS记录是否更新
 
 <details>
 
 <summary>使用Docker启动</summary>
 
-#### native-docker版本
+### native-docker版本
 
-1. 同native版本第一步
-2. 创建docker-compose.yml文件
+1. 创建docker-compose.yml文件
    ```yaml
    ---
-   version: "3"
    services:
      cf-ddns:
        image: selcarpa/cloudflare-ddns:latest
+       network_mode: "host"
        container_name: cf-ddns
-       volumes:
-         - /path/to/config.json5:/app/config.json5  # 挂载配置文件，注意，/path/to/config.json5需要替换为实际路径
        restart: unless-stopped # 重启策略
-       command: ["-c=/app/config.json5"] # 启动命令
+       command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # 启动命令
    ```
-3. 启动
+2. 启动
    ```shell
     docker-compose up -d
     ```
@@ -66,40 +64,52 @@
 
 <details>
 
-<summary>另外提供Java版本，当前版本不支持那么多的系统架构，仅作预览</summary>
+<summary>另外提供Java版本</summary>
 
 ### java版本
 
-1. 同native版本第一步，创建cf-ddns-config.json
-2. 前往[release](../../releases/latest)下载当前最新jar版本，重命名为cf-ddns.jar
-3. 运行
+1. 前往[release](../../releases/latest)下载当前最新jar版本，重命名为cf-ddns.jar
+2. 运行
    ```shell
-   java -jar cf-ddns.jar -c=cf-ddns-config.json
+   java -jar -Xmx30m cf-ddns.jar -gen -zoneId=xxxXXxxXXXxzoneIdxxxXXXx -authKey=XXXxauthKeyxxxXXXx -domain=ex.example.com -v4=true -v6=false
    ```
 
 ### java-docker版本
 
-1. 同native版本第一步
-2. 创建docker-compose.yml文件
+1. 创建docker-compose.yml文件
    ```yaml
    ---
-   version: "3"
    services:
      cf-ddns:
        image: selcarpa/cloudflare-ddns-jvm:latest
+       network_mode: "host"
        container_name: cf-ddns
-       volumes:
-         - /path/to/config.json5:/app/config.json5  # 挂载配置文件，注意，/path/to/config.json5需要替换为实际路径
        restart: unless-stopped # 重启策略
-       command: ["-c=/app/config.json5"] # 启动命令
+       command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # 启动命令
    ```
-3. 同native-docker版本第三步
+2. 启动
+   ```shell
+    docker-compose up -d
+    ```
 
 </details>
 
-## 配置文件
+## 更多功能
 
-配置文件支持toml和json/json5格式
+### 自定义启动cloudflare-ddns
+
+通过配置文件启动Cloudflare-ddns，可以实现更多功能，如：
+
+- 多域名支持
+- 自定义检查ipv4/ipv6地址的url
+- 自定义ttl
+- 自动清理DNS记录
+- cloudflare代理支持
+- ttl检查
+
+#### 编写配置文件
+
+配置文件支持toml和json/json5格式，此处以json5为示例
 
 ```json5
 //完整例:
@@ -136,26 +146,26 @@
 }
 ```
 
-### 配置文件最顶层
+##### 配置文件最顶层
 
 | 字段名     | 类型         | 必填 | 说明   |
 |---------|------------|----|------|
 | domains | 数组(Domain) | 是  | 域名配置 |
 | common  | Properties | 是  | 通用配置 |
 
-### Domain
+##### Domain
 
 | 字段名        | 类型         | 必填 | 说明                                               |
 |------------|------------|----|--------------------------------------------------|
 | name       | 字符串        | 是  | 域名                                               |
 | properties | Properties | 否  | 域名配置，如果存在，会覆盖common中的配置，如果此处部任何配置为空，使用common中的配置 |
 
-### Properties
+##### Properties
 
 | 字段名        | 类型   | 必填 | 说明                                               |
 |------------|------|----|--------------------------------------------------|
 | zoneId     | 字符串  | 是  | cloudflare的zone id                               |
-| authKey    | 字符串  | 是  | cloudflare的token                                 |
+| authKey    | 字符串  | 是  | cloudflare的authKey                               |
 | checkUrlV4 | 字符串  | 否  | 检查ipv4的url，默认为https://api4.ipify.org?format=text |
 | checkUrlV6 | 字符串  | 否  | 检查ipv6的url，默认为https://api6.ipify.org?format=text |
 | v4         | 布尔类型 | 否  | 是否启用ipv4，默认为true                                 |
@@ -165,3 +175,67 @@
 | proxied    | 布尔类型 | 否  | 是否启用cloudflare的代理，默认为false                       |
 | ttlCheck   | 布尔类型 | 否  | 是否启用ttl检查，默认为false                               |
 
+#### 启动cloudflare-ddns
+
+### native版本
+
+```shell
+# Linux
+./cf-ddns -c=config.json5
+# Windows
+./cf-ddns.exe -c=config.json5
+```
+
+<details>
+<summary>Docker版本</summary>
+
+```yaml
+     ---
+     services:
+       cf-ddns:
+         image: selcarpa/cloudflare-ddns:latest
+         network_mode: "host"
+         container_name: cf-ddns
+         volumes:
+           - /path/to/config.json5:/cf-ddn/config.json5  # 挂载配置文件，注意，/path/to/config.json5需要替换为实际路径
+         restart: unless-stopped # 重启策略
+         command: [ "-c=/cf-ddn/config.json5" ] # 启动命令
+```
+
+</details>
+
+### java版本
+
+```shell
+java -jar -Xmx30m cf-ddns.jar -c=config.json5
+```
+
+<details>
+<summary>Docker版本</summary>
+
+```yaml
+     ---
+     services:
+       cf-ddns:
+         image: selcarpa/cloudflare-ddns-jvm:latest
+         network_mode: "host"
+         container_name: cf-ddns
+         volumes:
+           - /path/to/config.json5:/cf-ddns/config.json5  # 挂载配置文件，注意，/path/to/config.json5需要替换为实际路径
+         restart: unless-stopped # 重启策略
+         command: [ "-c=/cf-ddn/config.json5" ] # 启动命令
+```
+
+</details>
+
+### 启动参数实现单次进行操作的功能
+
+- `-once` 仅执行一次，不会启动定时任务
+- `-purge` 清理DNS记录，不会启动定时任务
+- `-debug` 开启debug模式，会输出更多日志
+- `-gen` 生成配置文件模板，此为上文中快速启动的命令，需要配合以下参数使用
+    - `-zoneId` cloudflare的zone id，必填
+    - `-authKey` cloudflare的authKey，必填
+    - `-domain` 域名，必填
+    - `-v4` 是否启用ipv4，可选，默认为true
+    - `-v6` 是否启用ipv6，可选，默认为false

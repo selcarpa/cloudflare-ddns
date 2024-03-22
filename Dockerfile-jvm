@@ -2,4 +2,5 @@ FROM eclipse-temurin:17-jre
 WORKDIR /cf-ddns/
 COPY build/libs/*-SNAPSHOT.jar ./cf-ddns.jar
 
-ENTRYPOINT ["java","-jar","/cf-ddns/cf-ddns.jar"]
+ENTRYPOINT ["java","-jar","-Xmx30m","-Xms30m","/cf-ddns/cf-ddns.jar"]
+
