@@ -14,6 +14,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
 import model.config.Config.ConfigurationUrl
+import model.config.Config.genConfiguration
 import model.config.Domain
 import model.request.CloudflareBody
 import model.request.DeleteDns
@@ -34,6 +35,7 @@ private val json = Json {
 
 private var debug = false
 private var once = false
+private var gen = false
 
 private val client by lazy {
     HttpClient {
@@ -65,12 +67,15 @@ fun main(args: Array<String>) = runBlocking {
             if (it.startsWith("-c=")) {
                 ConfigurationUrl = it.replace("-c=", "")
             }
-            if (it == "--debug") {
+            if (it == "-debug") {
                 debug = true
                 debugLogSet()
             }
-            if (it == "--once") {
+            if (it == "-once") {
                 once = true
+            }
+            if (it == "-gen") {
+                gen = true
             }
         }
 
@@ -78,6 +83,34 @@ fun main(args: Array<String>) = runBlocking {
 
         logger.debug { "debug-mode online" }
         logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
+
+        if (gen) {
+            if (ConfigurationUrl!=null){
+                logger.warn { "configuration file is specified, -gen will ignore it" }
+            }
+            var zoneId: String? = null
+            var authKey: String? = null
+            var domain: String? = null
+            var v4: Boolean? = null
+            var v6: Boolean? = null
+            args.forEach {
+                if (it.startsWith("-zoneId")) {
+                    zoneId = it.replace("-zoneId=", "")
+                }
+                if (it.startsWith("-authKey")) {
+                    authKey = it.replace("-authKey=", "")
+                }
+                if (it.startsWith("-domain")) {
+                    domain = it.replace("-domain=", "")
+                }
+            }
+            if (zoneId == null || authKey == null || domain == null) {
+                logger.error { "zoneId, authKey, domain must be specified" }
+                exitGracefully()
+            }
+            genConfiguration(domain, zoneId, authKey, v4, v6)
+        }
+
 
         //if args contains purge, it will purge all dns record and exit
         if (args.contains("purge")) {

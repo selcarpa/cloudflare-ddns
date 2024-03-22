@@ -9,6 +9,7 @@ import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.tomlkt.Toml
 import okio.Path.Companion.toPath
 import utils.readFile
+import utils.writeFile
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,14 +58,7 @@ object Config {
 
         }
 
-        configurationSetting.domains.forEach {
-            if (it.properties == null) {
-                it.properties = configurationSetting.common
-            }
-            //cover again to avoid some empty value in common
-            it.properties = propertiesCover(it, configurationSetting.common)
-        }
-
+        configurationSetting.propertiesCover()
         return configurationSetting
     }
 
@@ -77,9 +71,8 @@ object Config {
     private fun propertiesCover(domain: Domain, common: Properties): Properties {
         val domainProperties = domain.properties
         val proxied = domainProperties?.proxied ?: common.proxied ?: false
-        return Properties(
-            zoneId = domainProperties?.zoneId ?: common.zoneId
-            ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
+        return Properties(zoneId = domainProperties?.zoneId ?: common.zoneId
+        ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
             authKey = domainProperties?.authKey ?: common.authKey
             ?: throw IllegalArgumentException("no authKey specified for ${domain.name}"),
             checkUrlV4 = domainProperties?.checkUrlV4 ?: common.checkUrlV4 ?: "https://api4.ipify.org?format=text",
@@ -97,8 +90,42 @@ object Config {
                 } else {
                     ttlCheck
                 }
-            }
+            })
+    }
+
+    fun genConfiguration(domain: String?, zoneId: String?, authKey: String?, v4: Boolean?, v6: Boolean?) {
+        val configurationSetting = ConfigurationSetting(
+            listOf(Domain(domain!!, null)), Properties(
+                zoneId = zoneId!!,
+                authKey = authKey!!,
+                null,
+                null,
+                v4 ?: true,
+                v6 ?: false,
+                null,
+                null,
+                null,
+                null,
+            )
         )
+        val configPathName = "./config.json5"
+        val configPath = configPathName.toPath()
+        writeFile(
+            configPath,
+            json.encodeToString(ConfigurationSetting.serializer(), configurationSetting)
+        )
+        logger.info { "configuration file generated at $configPathName, next time you can use \"-c=$configPathName\" to specify this configuration file" }
+        this.ConfigurationUrl = configPathName
+    }
+
+    private fun ConfigurationSetting.propertiesCover() {
+        this.domains.forEach {
+            if (it.properties == null) {
+                it.properties = this.common
+            }
+            //cover again to avoid some empty value in common
+            it.properties = propertiesCover(it, this.common)
+        }
     }
 }
 

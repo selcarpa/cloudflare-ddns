@@ -2,7 +2,8 @@ package utils
 
 import okio.*
 
-fun readFile(path: Path): String{
+
+fun readFile(path: Path): String {
     var firstLine = true
     FileSystem.SYSTEM.source(path).use { fileSource ->
         var result = ""
@@ -10,7 +11,7 @@ fun readFile(path: Path): String{
             while (true) {
                 val line = bufferedFileSource.readUtf8Line() ?: break
                 result += if (firstLine) {
-                    firstLine=false
+                    firstLine = false
                     line
                 } else {
                     "\n" + line
@@ -18,5 +19,11 @@ fun readFile(path: Path): String{
             }
         }
         return result
+    }
+}
+
+fun writeFile(path: Path, content: String) {
+    FileSystem.SYSTEM.write(path) {
+        writeUtf8(content)
     }
 }

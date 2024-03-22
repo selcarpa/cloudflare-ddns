@@ -34,4 +34,5 @@ actual fun exitGracefully(){
 }
 
 actual fun logAppenderSet() {
+    //ignore
 }
