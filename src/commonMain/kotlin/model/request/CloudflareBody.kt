@@ -54,5 +54,6 @@ data class DnsRecordRequest(
 @Serializable
 data class Error(
     val code: Int,
-    var message: String = ""
+    var message: String = "",
+    @SerialName("error_chain") var errorChain: List<Error>? = null
 )

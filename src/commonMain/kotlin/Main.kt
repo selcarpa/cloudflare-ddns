@@ -433,15 +433,16 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
         }
     }
     val cloudflareBody = httpResponse.body<CloudflareBody<DnsRecord>>()
-    if (!cloudflareBody.success) {
+    if (cloudflareBody.success) {
+        if (update) {
+            logger.info { "updated [${ddnsItem.domain.name}] successful" }
+        } else {
+            logger.info { "created [${ddnsItem.domain.name}] successful" }
+        }
+        ddnsItem.init(cloudflareBody.result!!)
+    } else {
         logger.error { cloudflareBody.errors }
     }
-    if (update) {
-        logger.info { "updated [${ddnsItem.domain.name}] successful" }
-    } else {
-        logger.info { "created [${ddnsItem.domain.name}] successful" }
-    }
-    ddnsItem.init(cloudflareBody.result!!)
 }
 
 /**
