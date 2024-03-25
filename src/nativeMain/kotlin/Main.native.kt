@@ -11,7 +11,7 @@ import platform.posix.stderr
 import kotlin.system.exitProcess
 
 actual fun debugLogSet() {
-    KotlinLoggingConfiguration.logLevel = Level.ERROR
+    KotlinLoggingConfiguration.logLevel = Level.DEBUG
 }
 
 actual fun exitGracefully() {
