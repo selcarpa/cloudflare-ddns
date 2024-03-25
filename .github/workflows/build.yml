@@ -20,7 +20,7 @@ jobs:
         run: docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name multi-arch-builder
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
