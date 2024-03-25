@@ -36,6 +36,8 @@ private val json = Json {
 private var debug = false
 private var once = false
 private var gen = false
+private var help = false
+private var purge = false
 
 private val client by lazy {
     HttpClient {
@@ -64,19 +66,7 @@ fun main(args: Array<String>) = runBlocking {
     try {
         args.forEach {
             println(it)
-            if (it.startsWith("-c=")) {
-                ConfigurationUrl = it.replace("-c=", "")
-            }
-            if (it == "-debug") {
-                debug = true
-                debugLogSet()
-            }
-            if (it == "-once") {
-                once = true
-            }
-            if (it == "-gen") {
-                gen = true
-            }
+            argCommandExec(it)
         }
 
         logAppenderSet()
@@ -87,13 +77,17 @@ fun main(args: Array<String>) = runBlocking {
         if (gen) {
             gen(args)
         }
-
-
-        //if args contains purge, it will purge all dns record and exit
-        if (args.contains("-purge")) {
+        if (purge) {//if args contains purge, it will purge all dns record and exit, this task run after configuration loaded
             purge()
+            exitGracefully()
         }
 
+        if (help) {
+            argCommands.forEach {
+                println("${it.name}\t${it.description}")
+            }
+            exitGracefully()
+        }
         mainTask()
     } catch (e: Exception) {
         exceptionCatch(e)
@@ -522,3 +516,56 @@ data class DdnsItem(
 
 enum class TYPE { A, AAAA }
 
+
+val argCommands: List<ArgCommand> = listOf(
+    // configuration load
+    ArgCommand("-c", { it.startsWith("-c=") }, { ConfigurationUrl = it.replace("-c=", "") }, description = """
+        Set configuration file path, support json/toml/yaml file
+    """.trimIndent()
+    ), ArgCommand("-debug", { it.startsWith("-debug") }, {
+        debug = true
+        debugLogSet()
+    }, description = """
+        Set debug mode, it will print more log information
+        """.trimIndent()
+    ), ArgCommand("-once", { it == "-once" }, {
+        once = true
+    }, description = """
+        Run ddns task only once, it can be used with timers such as cron
+    """.trimIndent()
+    ), ArgCommand("-gen", { it == "-gen" }, {
+        gen = true
+    }, description = """
+        Generate configuration file, ignore configuration file path, need to specify zoneId, authKey, domain, v4, v6 in command line, for example: -gen -zoneId=xxx -authKey=xxx -domain=xxx -v4=true -v6=false
+    """.trimIndent()
+    ), ArgCommand("-purge", { it == "-purge" }, {
+        purge = true
+    }, description = """
+        Purge all dns record, this is useful when you want to clean up all dns record
+    """.trimIndent()
+    ), ArgCommand("-help", { it == "-help" }, {
+        help = true
+    }, description = """
+        Print help information
+    """.trimIndent()
+    )
+)
+
+data class ArgCommand(
+    val name: String,
+    val check: (String) -> Boolean,
+    val exec: ((String) -> Unit)? = null,
+    val coroutineExec: (suspend (String) -> Unit)? = null,
+    val description: String
+)
+
+fun argCommandExec(arg: String) = runBlocking {
+    argCommands.forEach {
+        if (it.check(arg)) {
+            it.exec?.invoke(arg)
+            launch {
+                it.coroutineExec?.invoke(arg)
+            }
+        }
+    }
+}
