@@ -30,7 +30,7 @@ actual fun debugLogSet() {
 }
 
 actual fun exitGracefully(){
-    exitProcess(1)
+    exitProcess(0)
 }
 
 actual fun logAppenderSet() {
