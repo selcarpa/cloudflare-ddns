@@ -15,7 +15,7 @@ actual fun debugLogSet() {
 }
 
 actual fun exitGracefully() {
-    exitProcess(1)
+    exitProcess(0)
 }
 
 @OptIn(ExperimentalForeignApi::class)
