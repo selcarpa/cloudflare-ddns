@@ -158,12 +158,12 @@ private fun CoroutineScope.mainTask() {
     ddnsItems.groupBy {
         it.domain.properties!!.ttl
     }.forEach { (ttl, d) ->
-        d.filter { it.domain.properties?.v4 ?: false }.groupBy {
+        d.filter { it.type==TYPE.A }.groupBy {
             it.domain.properties!!.checkUrlV4!!
         }.forEach {
             launchMainTask(ttl, it)
         }
-        d.filter { it.domain.properties?.v6 ?: false }.groupBy {
+        d.filter { it.type==TYPE.AAAA }.groupBy {
             it.domain.properties!!.checkUrlV6!!
         }.forEach {
             launchMainTask(ttl, it)
