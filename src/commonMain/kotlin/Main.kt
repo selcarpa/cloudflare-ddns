@@ -38,6 +38,8 @@ private var once = false
 private var gen = false
 private var help = false
 private var purge = false
+var genFile = false
+lateinit var filePath: String
 
 private val client by lazy {
     HttpClient {
@@ -84,7 +86,7 @@ fun main(args: Array<String>) = runBlocking {
 
         if (help) {
             argCommands.forEach {
-                println("${it.name}\t${it.description}")
+                println("${it.name}\t\t${it.description}")
             }
             exitGracefully()
         }
@@ -158,12 +160,12 @@ private fun CoroutineScope.mainTask() {
     ddnsItems.groupBy {
         it.domain.properties!!.ttl
     }.forEach { (ttl, d) ->
-        d.filter { it.type==TYPE.A }.groupBy {
+        d.filter { it.type == TYPE.A }.groupBy {
             it.domain.properties!!.checkUrlV4!!
         }.forEach {
             launchMainTask(ttl, it)
         }
-        d.filter { it.type==TYPE.AAAA }.groupBy {
+        d.filter { it.type == TYPE.AAAA }.groupBy {
             it.domain.properties!!.checkUrlV6!!
         }.forEach {
             launchMainTask(ttl, it)
@@ -537,7 +539,13 @@ val argCommands: List<ArgCommand> = listOf(
     ), ArgCommand("-gen", { it == "-gen" }, {
         gen = true
     }, description = """
-        Generate configuration file, ignore configuration file path, need to specify zoneId, authKey, domain, v4, v6 in command line, for example: -gen -zoneId=xxx -authKey=xxx -domain=xxx -v4=true -v6=false
+        Generate configuration, ignore configuration file path, need to specify zoneId, authKey, domain, v4, v6 in command line, for example: -gen -zoneId=xxx -authKey=xxx -domain=xxx -v4=true -v6=false
+    """.trimIndent()
+    ), ArgCommand("-file", { it.startsWith("-file") }, {
+        genFile = true
+        filePath = it.replace("-file=", "")
+    }, description = """
+        Generate configuration file, need to be use with "-gen", for example: -file=<path to config file>, next time you can use "-c=<path to config file>" to specify this configuration file 
     """.trimIndent()
     ), ArgCommand("-purge", { it == "-purge" }, {
         purge = true

@@ -1,6 +1,8 @@
 package model.config
 
 import exception.CFDdnsException
+import filePath
+import genFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -31,7 +33,21 @@ private val yaml = Yaml {
 
 object Config {
     var ConfigurationUrl: String? = null
-    val Configuration: ConfigurationSetting by lazy { initConfiguration() }
+    val Configuration: ConfigurationSetting
+        get() {
+            return if (dynamicConfiguration == null) {
+                _Configuration
+            } else {
+                dynamicConfiguration!!
+            }
+        }
+    private val _Configuration: ConfigurationSetting by lazy { initConfiguration() }
+    private var dynamicConfiguration: ConfigurationSetting? = null
+        set(value) {
+            field = value
+            field?.propertiesCover()
+        }
+
 
     private fun initConfiguration(): ConfigurationSetting {
         val configurationSetting = if (ConfigurationUrl.orEmpty().isEmpty()) {
@@ -108,14 +124,15 @@ object Config {
                 null,
             )
         )
-        val configPathName = "./config.json5"
-        val configPath = configPathName.toPath()
-        writeFile(
-            configPath,
-            json.encodeToString(ConfigurationSetting.serializer(), configurationSetting)
-        )
-        logger.info { "configuration file generated at $configPathName, next time you can use \"-c=$configPathName\" to specify this configuration file" }
-        this.ConfigurationUrl = configPathName
+        if (genFile) {
+            val configPath = filePath.toPath()
+            writeFile(
+                configPath,
+                json.encodeToString(ConfigurationSetting.serializer(), configurationSetting)
+            )
+            logger.info { "configuration file generated at $filePath, next time you can use \"-c=$filePath\" to specify this configuration file" }
+        }
+        this.dynamicConfiguration = configurationSetting
     }
 
     private fun ConfigurationSetting.propertiesCover() {
