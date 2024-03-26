@@ -55,7 +55,7 @@ kotlin {
 //    }
     jvm {
         withJava()
-        @Suppress("UNUSED_VARIABLE") val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
+         val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             doFirst {
                 manifest {
@@ -65,7 +65,7 @@ kotlin {
             }
         }
     }
-    @Suppress("UNUSED_VARIABLE") sourceSets {
+     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
