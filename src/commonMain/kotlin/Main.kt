@@ -1,3 +1,9 @@
+import CommandMain.debug
+import CommandMain.once
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import com.github.ajalt.clikt.parameters.groups.cooccurring
+import com.github.ajalt.clikt.parameters.options.*
 import exception.CFDdnsException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
@@ -33,14 +39,6 @@ private val json = Json {
     explicitNulls = false
 }
 
-private var debug = false
-private var once = false
-private var gen = false
-private var help = false
-private var purge = false
-var genFile = false
-lateinit var filePath: String
-
 private val client by lazy {
     HttpClient {
         install(ContentNegotiation) {
@@ -60,40 +58,48 @@ expect fun debugLogSet()
 
 expect fun exitGracefully()
 
+object CommandMain : CliktCommand() {
 
-/**
- * main function
- */
-fun main(args: Array<String>) = runBlocking {
-    try {
-        args.forEach {
-            println(it)
-            argCommandExec(it)
+    private val c: String? by option().help("configuration file path")
+    private val purge: Boolean by option().flag(default = false).help("purge all dns record")
+    val debug: Boolean by option().flag(default = false).help("debug mode")
+    val once: Boolean by option().flag(default = false).help("run ddns task only once")
+
+    val genOptions by GenOptions().cooccurring()
+
+    override fun run() {
+        if (debug) {
+            debugLogSet()
         }
-
         logAppenderSet()
 
         logger.debug { "debug-mode online" }
         logger.info { "やらなくて後悔するよりも、やって後悔したほうがいいっていうよね？" }
 
-        if (gen) {
-            gen(args)
+        if (genOptions?.gen == true) {
+            genOptions?.let { gen(it.zoneId, it.authKey, it.domain, it.v4, it.v6) }
         }
         if (purge) {//if args contains purge, it will purge all dns record and exit, this task run after configuration loaded
             purge()
             exitGracefully()
         }
 
-        if (help) {
-            argCommands.forEach {
-                println("${it.name}\t\t${it.description}")
-            }
-            exitGracefully()
+        ConfigurationUrl = c
+        runBlocking {
+            mainTask()
         }
-        mainTask()
-    } catch (e: Exception) {
-        exceptionCatch(e)
+
     }
+}
+
+class GenOptions : OptionGroup() {
+    val gen: Boolean by option().flag(default = false).help("generate configuration")
+    val zoneId: String by option().help("cloudflare zone id").required()
+    val authKey: String by option().help("cloudflare auth key").required()
+    val domain: String by option().help("domain").required()
+    val v4: Boolean by option().flag(default = true).help("enable ipv4")
+    val v6: Boolean by option().flag(default = false).help("enable ipv6")
+    val file: String? by option().help("generate configuration file path")
 }
 
 private fun purge() {
@@ -116,35 +122,9 @@ private fun exceptionCatch(e: Exception) {
     }
 }
 
-private fun gen(args: Array<String>) {
+private fun gen(zoneId: String, authKey: String, domain: String, v4: Boolean?, v6: Boolean?) {
     if (ConfigurationUrl != null) {
         logger.warn { "configuration file is specified, -gen will ignore it" }
-    }
-    var zoneId: String? = null
-    var authKey: String? = null
-    var domain: String? = null
-    var v4: Boolean? = null
-    var v6: Boolean? = null
-    args.forEach {
-        if (it.startsWith("-zoneId")) {
-            zoneId = it.replace("-zoneId=", "")
-        }
-        if (it.startsWith("-authKey")) {
-            authKey = it.replace("-authKey=", "")
-        }
-        if (it.startsWith("-domain")) {
-            domain = it.replace("-domain=", "")
-        }
-        if (it.startsWith("-v4")) {
-            v4 = it.replace("-v4=", "").toBoolean()
-        }
-        if (it.startsWith("-v6")) {
-            v6 = it.replace("-v6=", "").toBoolean()
-        }
-    }
-    if (zoneId == null || authKey == null || domain == null) {
-        logger.error { "zoneId, authKey, domain must be specified" }
-        exitGracefully()
     }
     genConfiguration(domain, zoneId, authKey, v4, v6)
 }
@@ -519,62 +499,7 @@ data class DdnsItem(
 
 enum class TYPE { A, AAAA }
 
-
-val argCommands: List<ArgCommand> = listOf(
-    // configuration load
-    ArgCommand("-c", { it.startsWith("-c=") }, { ConfigurationUrl = it.replace("-c=", "") }, description = """
-        Set configuration file path, support json/toml/yaml file
-    """.trimIndent()
-    ), ArgCommand("-debug", { it.startsWith("-debug") }, {
-        debug = true
-        debugLogSet()
-    }, description = """
-        Set debug mode, it will print more log information
-        """.trimIndent()
-    ), ArgCommand("-once", { it == "-once" }, {
-        once = true
-    }, description = """
-        Run ddns task only once, it can be used with timers such as cron
-    """.trimIndent()
-    ), ArgCommand("-gen", { it == "-gen" }, {
-        gen = true
-    }, description = """
-        Generate configuration, ignore configuration file path, need to specify zoneId, authKey, domain, v4, v6 in command line, for example: -gen -zoneId=xxx -authKey=xxx -domain=xxx -v4=true -v6=false
-    """.trimIndent()
-    ), ArgCommand("-file", { it.startsWith("-file") }, {
-        genFile = true
-        filePath = it.replace("-file=", "")
-    }, description = """
-        Generate configuration file, need to be use with "-gen", for example: -file=<path to config file>, next time you can use "-c=<path to config file>" to specify this configuration file 
-    """.trimIndent()
-    ), ArgCommand("-purge", { it == "-purge" }, {
-        purge = true
-    }, description = """
-        Purge all dns record, this is useful when you want to clean up all dns record
-    """.trimIndent()
-    ), ArgCommand("-help", { it == "-help" }, {
-        help = true
-    }, description = """
-        Print help information
-    """.trimIndent()
-    )
-)
-
-data class ArgCommand(
-    val name: String,
-    val check: (String) -> Boolean,
-    val exec: ((String) -> Unit)? = null,
-    val coroutineExec: (suspend (String) -> Unit)? = null,
-    val description: String
-)
-
-fun argCommandExec(arg: String) = runBlocking {
-    argCommands.forEach {
-        if (it.check(arg)) {
-            it.exec?.invoke(arg)
-            launch {
-                it.coroutineExec?.invoke(arg)
-            }
-        }
-    }
-}
+/**
+ * main function
+ */
+fun main(args: Array<String>) = CommandMain.main(args)

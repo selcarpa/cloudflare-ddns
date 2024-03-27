@@ -1,8 +1,7 @@
 package model.config
 
+import CommandMain.genOptions
 import exception.CFDdnsException
-import filePath
-import genFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -124,13 +123,13 @@ object Config {
                 null,
             )
         )
-        if (genFile) {
-            val configPath = filePath.toPath()
+        if (genOptions?.file?.isNotEmpty() == true) {
+            val configPath = genOptions?.file!!.toPath()
             writeFile(
                 configPath,
                 json.encodeToString(ConfigurationSetting.serializer(), configurationSetting)
             )
-            logger.info { "configuration file generated at $filePath, next time you can use \"-c=$filePath\" to specify this configuration file" }
+            logger.info { "configuration file generated at ${genOptions?.file}, next time you can use \"-c=${genOptions?.file}\" to specify this configuration file" }
         }
         this.dynamicConfiguration = configurationSetting
     }

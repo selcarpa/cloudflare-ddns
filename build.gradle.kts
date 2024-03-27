@@ -68,6 +68,7 @@ kotlin {
     @Suppress("UNUSED_VARIABLE") sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation("com.github.ajalt.clikt:clikt:4.2.2")
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
