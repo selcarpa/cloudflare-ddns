@@ -413,7 +413,8 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                     content = ip,
                     ttl = ddnsItem.domain.properties!!.ttl!!,
                     proxied = ddnsItem.domain.properties!!.proxied!!,
-                    tags = emptyList()
+                    tags = emptyList(),
+                    comment = ddnsItem.domain.properties!!.comment!!
                 )
             )
         )

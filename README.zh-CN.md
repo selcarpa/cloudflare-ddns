@@ -162,18 +162,19 @@
 
 ##### Properties
 
-| 字段名        | 类型   | 必填 | 说明                                               |
-|------------|------|----|--------------------------------------------------|
-| zoneId     | 字符串  | 是  | cloudflare的zone id                               |
-| authKey    | 字符串  | 是  | cloudflare的authKey                               |
-| checkUrlV4 | 字符串  | 否  | 检查ipv4的url，默认为https://api4.ipify.org?format=text |
-| checkUrlV6 | 字符串  | 否  | 检查ipv6的url，默认为https://api6.ipify.org?format=text |
-| v4         | 布尔类型 | 否  | 是否启用ipv4，默认为true                                 |
-| v6         | 布尔类型 | 否  | 是否启用ipv6，默认为false                                |
-| ttl        | 整型数字 | 否  | DNS记录的ttl，秒数，默认为300                              |
-| autoPurge  | 布尔类型 | 否  | 是否自动清理DNS记录，默认为false                             |
-| proxied    | 布尔类型 | 否  | 是否启用cloudflare的代理，默认为false                       |
-| ttlCheck   | 布尔类型 | 否  | 是否启用ttl检查，默认为false                               |
+| 字段名        | 类型   | 必填 | 说明                                                                       |
+|------------|------|----|--------------------------------------------------------------------------|
+| zoneId     | 字符串  | 是  | cloudflare的zone id                                                       |
+| authKey    | 字符串  | 是  | cloudflare的authKey                                                       |
+| checkUrlV4 | 字符串  | 否  | 检查ipv4的url，默认为https://api4.ipify.org?format=text                         |
+| checkUrlV6 | 字符串  | 否  | 检查ipv6的url，默认为https://api6.ipify.org?format=text                         |
+| v4         | 布尔类型 | 否  | 是否启用ipv4，默认为true                                                         |
+| v6         | 布尔类型 | 否  | 是否启用ipv6，默认为false                                                        |
+| ttl        | 整型数字 | 否  | DNS记录的ttl，秒数，默认为300                                                      |
+| autoPurge  | 布尔类型 | 否  | 是否自动清理DNS记录，默认为false                                                     |
+| proxied    | 布尔类型 | 否  | 是否启用cloudflare的代理，默认为false                                               |
+| comment    | 字符串  | 否  | 注释，用于显示在cloudflare的面板上，不会对功能有任何影响，默认为"cf-ddns auto update"，如果需要不显示，请手动覆盖 |
+| ttlCheck   | 布尔类型 | 否  | 是否启用ttl检查，默认为false                                                       |
 
 #### 启动cloudflare-ddns
 
