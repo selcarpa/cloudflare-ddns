@@ -6,4 +6,3 @@ pluginManagement {
 }
 
 rootProject.name = "cf-ddns"
-include("win-installer")

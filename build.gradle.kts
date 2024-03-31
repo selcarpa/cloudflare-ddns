@@ -6,7 +6,7 @@ val kotlin_version: String by project
 val okio_version: String by project
 val kotlin_logging_version: String by project
 val taskGroupName = "cf-ddns"
-val templeReleasePath="release1"
+val templeReleasePath = "release1"
 
 plugins {
     kotlin("multiplatform") version "1.9.23"
@@ -56,7 +56,7 @@ kotlin {
 //    }
     jvm {
         withJava()
-         val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
+        val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             doFirst {
                 manifest {
@@ -66,7 +66,7 @@ kotlin {
             }
         }
     }
-     sourceSets {
+    sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -149,7 +149,7 @@ tasks.register<Copy>("mingwX64CopyAndCompile") {
     rename(taskGroupName, "cf-ddns-windows-x64-${version}")
 }
 
-tasks.register<Copy>("buildJarCopy"){
+tasks.register<Copy>("buildJarCopy") {
     description = "Copy and compile jar"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
@@ -181,6 +181,7 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "linux/amd64",
         "-t",
         "selcarpa/cloudflare-ddns:$version",
+        "selcarpa/cloudflare-ddns:test",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
@@ -211,6 +212,7 @@ tasks.register<Exec>("jvmDockerBuildx") {
         "linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64",
         "-t",
         "selcarpa/cloudflare-ddns-jvm:$version",
+        "selcarpa/cloudflare-ddns-jvm:test",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
