@@ -191,7 +191,6 @@
 <summary>Docker版本</summary>
 
 ```yaml
-     ---
      services:
        cf-ddns:
          image: selcarpa/cloudflare-ddns:latest
@@ -215,7 +214,6 @@ java -jar -Xmx30m cf-ddns.jar -c=config.json5
 <summary>Docker版本</summary>
 
 ```yaml
-     ---
      services:
        cf-ddns:
          image: selcarpa/cloudflare-ddns-jvm:latest

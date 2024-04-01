@@ -438,7 +438,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
         }
         ddnsItem.init(cloudflareBody.result!!)
     } else {
+        logger.error { "cloudflare api invoke error, The next task will be reinitialized" }
         logger.error { cloudflareBody.errors }
+        ddnsItem.inited = false
     }
 }
 
@@ -469,8 +471,8 @@ private suspend fun DdnsItem.init(): Boolean {
 
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
-        logger.error { cloudflareBody.errors }
         logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
+        logger.error { cloudflareBody.errors }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {
         init(cloudflareBody.result!!.first())
