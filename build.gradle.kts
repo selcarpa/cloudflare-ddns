@@ -6,6 +6,7 @@ val kotlin_version: String by project
 val okio_version: String by project
 val kotlin_logging_version: String by project
 val taskGroupName = "cf-ddns"
+val templeReleasePath = "release1"
 
 plugins {
     kotlin("multiplatform") version "1.9.23"
@@ -14,7 +15,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.24-RELEASE"
+version = "1.27-RELEASE"
 
 repositories {
     mavenCentral()
@@ -55,7 +56,7 @@ kotlin {
 //    }
     jvm {
         withJava()
-        @Suppress("UNUSED_VARIABLE") val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
+        val jvmJar by tasks.getting(org.gradle.jvm.tasks.Jar::class) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             doFirst {
                 manifest {
@@ -65,7 +66,7 @@ kotlin {
             }
         }
     }
-    @Suppress("UNUSED_VARIABLE") sourceSets {
+    sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -126,7 +127,7 @@ tasks.register<Copy>("linuxArm64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("linuxArm64Binaries"))
     from("${buildDir}/bin/linuxArm64/releaseExecutable/")
-    into("${buildDir}/release1/")
+    into("${buildDir}/${templeReleasePath}/")
     rename(taskGroupName, "cf-ddns-linux-arm64-${version}")
 }
 
@@ -135,7 +136,7 @@ tasks.register<Copy>("linuxX64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("linuxX64Binaries"))
     from("${buildDir}/bin/linuxX64/releaseExecutable/")
-    into("${buildDir}/release1/")
+    into("${buildDir}/${templeReleasePath}/")
     rename(taskGroupName, "cf-ddns-linux-x64-${version}")
 }
 
@@ -144,8 +145,17 @@ tasks.register<Copy>("mingwX64CopyAndCompile") {
     group = taskGroupName
     dependsOn(tasks.getByName("mingwX64Binaries"))
     from("${buildDir}/bin/mingwX64/releaseExecutable/")
-    into("${buildDir}/release1/")
+    into("${buildDir}/${templeReleasePath}/")
     rename(taskGroupName, "cf-ddns-windows-x64-${version}")
+}
+
+tasks.register<Copy>("JarCopyAndCompile") {
+    description = "Copy and compile jar"
+    group = taskGroupName
+    dependsOn(tasks.getByName("jvmJar"))
+    from("${buildDir}/libs/")
+    into("${buildDir}/${templeReleasePath}/")
+    rename("$taskGroupName-jvm-$version", taskGroupName)
 }
 
 tasks.register("github") {
@@ -171,6 +181,8 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "linux/amd64",
         "-t",
         "selcarpa/cloudflare-ddns:$version",
+        "-t",
+        "selcarpa/cloudflare-ddns:release",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
@@ -201,6 +213,8 @@ tasks.register<Exec>("jvmDockerBuildx") {
         "linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,windows/amd64",
         "-t",
         "selcarpa/cloudflare-ddns-jvm:$version",
+        "-t",
+        "selcarpa/cloudflare-ddns-jvm:release",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {

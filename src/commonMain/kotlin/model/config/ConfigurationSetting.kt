@@ -87,8 +87,9 @@ object Config {
     private fun propertiesCover(domain: Domain, common: Properties): Properties {
         val domainProperties = domain.properties
         val proxied = domainProperties?.proxied ?: common.proxied ?: false
-        return Properties(zoneId = domainProperties?.zoneId ?: common.zoneId
-        ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
+        return Properties(
+            zoneId = domainProperties?.zoneId ?: common.zoneId
+            ?: throw IllegalArgumentException("no zoneId specified for ${domain.name}"),
             authKey = domainProperties?.authKey ?: common.authKey
             ?: throw IllegalArgumentException("no authKey specified for ${domain.name}"),
             checkUrlV4 = domainProperties?.checkUrlV4 ?: common.checkUrlV4 ?: "https://api4.ipify.org?format=text",
@@ -101,12 +102,15 @@ object Config {
             ttlCheck = run {
                 val ttlCheck = domainProperties?.ttlCheck ?: common.ttlCheck ?: false
                 if (ttlCheck && proxied) {
-                    logger.warn { "ttlCheck is not supported when proxied is true, set ttlCheck to false" }
+                    logger.warn { "ttlCheck is not supported when proxied is true, set ttlCheck to false for ${domain.name}" }
                     false
                 } else {
                     ttlCheck
                 }
-            })
+            },
+            comment = domainProperties?.comment ?: common.comment ?: "cf-ddns auto update",
+            reInit = domainProperties?.reInit ?: common.reInit ?: 5
+        )
     }
 
     fun genConfiguration(domain: String?, zoneId: String?, authKey: String?, v4: Boolean?, v6: Boolean?) {
@@ -116,19 +120,20 @@ object Config {
                 authKey = authKey!!,
                 null,
                 null,
-                v4 ?: true,
-                v6 ?: false,
+                v4 = v4 ?: true,
+                v6 = v6 ?: false,
                 null,
                 null,
                 null,
                 null,
+                null,
+                reInit = 5
             )
         )
         if (genFile) {
             val configPath = filePath.toPath()
             writeFile(
-                configPath,
-                json.encodeToString(ConfigurationSetting.serializer(), configurationSetting)
+                configPath, json.encodeToString(ConfigurationSetting.serializer(), configurationSetting)
             )
             logger.info { "configuration file generated at $filePath, next time you can use \"-c=$filePath\" to specify this configuration file" }
         }
@@ -157,7 +162,9 @@ data class Properties(
     val ttl: Int?,
     val autoPurge: Boolean?,
     val proxied: Boolean?,
-    val ttlCheck: Boolean?
+    var comment: String?,
+    val ttlCheck: Boolean?,
+    val reInit: Int?
 )
 
 @Serializable
@@ -167,6 +174,5 @@ data class ConfigurationSetting(
 
 @Serializable
 data class Domain(
-    val name: String,
-    var properties: Properties?,
+    val name: String, var properties: Properties?
 )

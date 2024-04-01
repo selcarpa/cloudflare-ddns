@@ -377,12 +377,22 @@ private fun DdnsItem.run(ip: String) = runBlocking {
         logger.info {
             "checked: [${this@run.domain.name} ${this@run.type}] already been resolve to [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
+        reInit()
         return@runBlocking
     } else {
         logger.info {
             "create [${this@run.domain.name} ${this@run.type}] with [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
         updateDns(ip, this@run)
+    }
+}
+
+private fun DdnsItem.reInit() {
+    if (this.domain.properties!!.reInit != 0 && this.domain.properties!!.reInit!! <= this.reInitCount) {
+        this.inited = false
+        this.reInitCount = 0
+    } else {
+        this.reInitCount += 1
     }
 }
 
@@ -413,7 +423,8 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                     content = ip,
                     ttl = ddnsItem.domain.properties!!.ttl!!,
                     proxied = ddnsItem.domain.properties!!.proxied!!,
-                    tags = emptyList()
+                    tags = emptyList(),
+                    comment = ddnsItem.domain.properties!!.comment!!
                 )
             )
         )
@@ -437,7 +448,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
         }
         ddnsItem.init(cloudflareBody.result!!)
     } else {
+        logger.error { "cloudflare api invoke error, The next task will be reinitialized" }
         logger.error { cloudflareBody.errors }
+        ddnsItem.inited = false
     }
 }
 
@@ -468,8 +481,8 @@ private suspend fun DdnsItem.init(): Boolean {
 
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
-        logger.error { cloudflareBody.errors }
         logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
+        logger.error { cloudflareBody.errors }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {
         init(cloudflareBody.result!!.first())
@@ -506,8 +519,7 @@ private fun DdnsItem.authHeader(): Map<String, String> {
 
 data class DdnsItem(
     val domain: Domain,
-    val type: TYPE,
-    val value: String = "",
+    val type: TYPE
 ) {
     var id: String? = null
     var ttl: Int? = null
@@ -515,6 +527,7 @@ data class DdnsItem(
     var inited: Boolean = false
     var exists: Boolean = false
     var content: String = ""
+    var reInitCount = 0
 }
 
 enum class TYPE { A, AAAA }

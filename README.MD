@@ -125,6 +125,8 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
     "checkUrlV6": "https://w6.tain.one/",
     "autoPurge": true,
     "proxied": true,
+    "comment": "cf-ddns auto update",
+    "reInit": 5
   },
   "domains": [
     {
@@ -140,6 +142,8 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
         "checkUrlV6": "https://w6.tain.one/",
         "autoPurge": true,
         "proxied": true,
+        "comment": "cf-ddns auto update",
+        "reInit": 5
       }
     }
   ]
@@ -162,18 +166,20 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
 
 ##### Properties
 
-| Field name | Type           | Required | Description                                                              |
-|------------|----------------|----------|--------------------------------------------------------------------------|
-| zoneId     | String         | yes      | zone id from cloudflare                                                  |
-| authKey    | String         | yes      | authKey from cloudflare                                                  |
-| checkUrlV4 | String         | No       | Check the url of ipv4, the default is https://api4.ipify.org?format=text |
-| checkUrlV6 | String         | No       | Check the url of ipv6, the default is https://api6.ipify.org?format=text |
-| v4         | Boolean type   | No       | Whether to enable ipv4, the default is true                              |
-| v6         | Boolean type   | No       | Whether to enable ipv6, the default is false                             |
-| ttl        | Integer number | No       | DNS record ttl, seconds, default is 300                                  |
-| autoPurge  | Boolean type   | No       | Whether to automatically clean up DNS records, the default is false      |
-| proxied    | Boolean type   | No       | Whether to enable cloudflare proxy, the default is false                 |
-| ttlCheck   | Boolean type   | No       | Whether to enable ttl check, the default is false                        |
+| Field name | Type           | Required | Description                                                                                                                                                                                                     |
+|------------|----------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| zoneId     | String         | yes      | zone id from cloudflare                                                                                                                                                                                         |
+| authKey    | String         | yes      | authKey from cloudflare                                                                                                                                                                                         |
+| checkUrlV4 | String         | No       | Check the url of ipv4, the default is https://api4.ipify.org?format=text                                                                                                                                        |
+| checkUrlV6 | String         | No       | Check the url of ipv6, the default is https://api6.ipify.org?format=text                                                                                                                                        |
+| v4         | Boolean type   | No       | Whether to enable ipv4, the default is true                                                                                                                                                                     |
+| v6         | Boolean type   | No       | Whether to enable ipv6, the default is false                                                                                                                                                                    |
+| ttl        | Integer number | No       | DNS record ttl, seconds, default is 300                                                                                                                                                                         |
+| autoPurge  | Boolean type   | No       | Whether to automatically clean up DNS records, the default is false                                                                                                                                             |
+| proxied    | Boolean type   | No       | Whether to enable cloudflare proxy, the default is false                                                                                                                                                        |
+| comment    | String         | No       | Comments, which are used to display on cloudflare dashboard and do not have any impact on functionality, default to "cf-ddns auto update", if you need not to display, please manually override to empty string |
+| ttlCheck   | Boolean type   | No       | Whether to enable ttl check, the default is false                                                                                                                                                               |
+| reInit     | Integer number | No       | After the number of tasks, re-check the record of the domain name on Cloudflare, to avoid deleting the domain name due to other operations, resulting in the failure to automatically re-create the domain name |
 
 #### Start cloudflare-ddns
 
