@@ -125,6 +125,8 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
     "checkUrlV6": "https://w6.tain.one/",
     "autoPurge": true,
     "proxied": true,
+    "comment": "cf-ddns auto update",
+    "reInit": 5
   },
   "domains": [
     {
@@ -140,6 +142,8 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
         "checkUrlV6": "https://w6.tain.one/",
         "autoPurge": true,
         "proxied": true,
+        "comment": "cf-ddns auto update",
+        "reInit": 5
       }
     }
   ]
@@ -175,6 +179,7 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
 | proxied    | Boolean type   | No       | Whether to enable cloudflare proxy, the default is false                                                                                                                                                        |
 | comment    | String         | No       | Comments, which are used to display on cloudflare dashboard and do not have any impact on functionality, default to "cf-ddns auto update", if you need not to display, please manually override to empty string |
 | ttlCheck   | Boolean type   | No       | Whether to enable ttl check, the default is false                                                                                                                                                               |
+| reInit     | Integer number | No       | After the number of tasks, re-check the record of the domain name on Cloudflare, to avoid deleting the domain name due to other operations, resulting in the failure to automatically re-create the domain name |
 
 #### Start cloudflare-ddns
 

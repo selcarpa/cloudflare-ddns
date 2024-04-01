@@ -102,13 +102,14 @@ object Config {
             ttlCheck = run {
                 val ttlCheck = domainProperties?.ttlCheck ?: common.ttlCheck ?: false
                 if (ttlCheck && proxied) {
-                    logger.warn { "ttlCheck is not supported when proxied is true, set ttlCheck to false" }
+                    logger.warn { "ttlCheck is not supported when proxied is true, set ttlCheck to false for ${domain.name}" }
                     false
                 } else {
                     ttlCheck
                 }
             },
-            comment = domainProperties?.comment ?: common.comment ?: "cf-ddns auto update"
+            comment = domainProperties?.comment ?: common.comment ?: "cf-ddns auto update",
+            reInit = domainProperties?.reInit ?: common.reInit ?: 5
         )
     }
 
@@ -125,7 +126,8 @@ object Config {
                 null,
                 null,
                 null,
-                null
+                null,
+                reInit = 5
             )
         )
         if (genFile) {
@@ -161,7 +163,8 @@ data class Properties(
     val autoPurge: Boolean?,
     val proxied: Boolean?,
     var comment: String?,
-    val ttlCheck: Boolean?
+    val ttlCheck: Boolean?,
+    val reInit: Int?
 )
 
 @Serializable

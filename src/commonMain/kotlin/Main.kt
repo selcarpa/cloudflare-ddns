@@ -377,12 +377,22 @@ private fun DdnsItem.run(ip: String) = runBlocking {
         logger.info {
             "checked: [${this@run.domain.name} ${this@run.type}] already been resolve to [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
+        reInit()
         return@runBlocking
     } else {
         logger.info {
             "create [${this@run.domain.name} ${this@run.type}] with [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
         updateDns(ip, this@run)
+    }
+}
+
+private fun DdnsItem.reInit() {
+    if (this.domain.properties!!.reInit != 0 && this.domain.properties!!.reInit!! <= this.reInitCount) {
+        this.inited = false
+        this.reInitCount = 0
+    } else {
+        this.reInitCount += 1
     }
 }
 
@@ -509,8 +519,7 @@ private fun DdnsItem.authHeader(): Map<String, String> {
 
 data class DdnsItem(
     val domain: Domain,
-    val type: TYPE,
-    val value: String = "",
+    val type: TYPE
 ) {
     var id: String? = null
     var ttl: Int? = null
@@ -518,6 +527,7 @@ data class DdnsItem(
     var inited: Boolean = false
     var exists: Boolean = false
     var content: String = ""
+    var reInitCount = 0
 }
 
 enum class TYPE { A, AAAA }
