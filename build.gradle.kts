@@ -149,7 +149,7 @@ tasks.register<Copy>("mingwX64CopyAndCompile") {
     rename(taskGroupName, "cf-ddns-windows-x64-${version}")
 }
 
-tasks.register<Copy>("buildJarCopy") {
+tasks.register<Copy>("JarCopyAndCompile") {
     description = "Copy and compile jar"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
