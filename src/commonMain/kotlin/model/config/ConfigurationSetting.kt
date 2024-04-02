@@ -109,7 +109,7 @@ object Config {
                 }
             },
             comment = domainProperties?.comment ?: common.comment ?: "cf-ddns auto update",
-            reInit = domainProperties?.reInit ?: common.reInit ?: 5
+            reInit = domainProperties?.reInit ?: common.reInit ?: (300 / (domainProperties?.ttl ?: common.ttl ?: 300))
         )
     }
 
@@ -123,11 +123,11 @@ object Config {
                 v4 = v4 ?: true,
                 v6 = v6 ?: false,
                 null,
+                autoPurge = true,
+                false,
                 null,
-                null,
-                null,
-                null,
-                reInit = 5
+                ttlCheck = true,
+                reInit = 1
             )
         )
         if (genFile) {
@@ -147,6 +147,8 @@ object Config {
             }
             //cover again to avoid some empty value in common
             it.properties = propertiesCover(it, this.common)
+            //override as lower case domain
+            it.name = it.name.lowercase()
         }
     }
 }
@@ -174,5 +176,5 @@ data class ConfigurationSetting(
 
 @Serializable
 data class Domain(
-    val name: String, var properties: Properties?
+    var name: String, var properties: Properties?
 )

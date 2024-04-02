@@ -388,11 +388,10 @@ private fun DdnsItem.run(ip: String) = runBlocking {
 }
 
 private fun DdnsItem.reInit() {
+    this.reInitCount += 1
     if (this.domain.properties!!.reInit != 0 && this.domain.properties!!.reInit!! <= this.reInitCount) {
         this.inited = false
         this.reInitCount = 0
-    } else {
-        this.reInitCount += 1
     }
 }
 
@@ -458,6 +457,7 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
  * invoke cloudflare api to get current dns record
  */
 private suspend fun DdnsItem.init(): Boolean {
+    logger.info { "init [${this.domain.name} ${this.type}] information" }
     val authHeader = this.authHeader()
     val dnsRecords =
         client.get("https://api.cloudflare.com/client/v4/zones/${this.domain.properties!!.zoneId}/dns_records") {

@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.26-SNAPSHOT"
+version = "1.28-SNAPSHOT"
 
 repositories {
     mavenCentral()
