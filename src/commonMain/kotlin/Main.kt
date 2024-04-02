@@ -96,6 +96,9 @@ fun main(args: Array<String>) = runBlocking {
     }
 }
 
+/**
+ * just purge all dns record and exit
+ */
 private fun purge() {
     Configuration.domains.forEach { domain ->
         domain.toDDnsItems(true).forEach { ddnsItem ->
@@ -105,6 +108,9 @@ private fun purge() {
     exitGracefully()
 }
 
+/**
+ * exception catch
+ */
 private fun exceptionCatch(e: Exception) {
     if (e is CFDdnsException) {
         exitGracefully()
@@ -116,6 +122,9 @@ private fun exceptionCatch(e: Exception) {
     }
 }
 
+/**
+ * generate configuration
+ */
 private fun gen(args: Array<String>) {
     if (ConfigurationUrl != null) {
         logger.warn { "configuration file is specified, -gen will ignore it" }
@@ -377,7 +386,7 @@ private fun DdnsItem.run(ip: String) = runBlocking {
         logger.info {
             "checked: [${this@run.domain.name} ${this@run.type}] already been resolve to [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
-        reInit()
+        detectReInit()
         return@runBlocking
     } else {
         logger.info {
@@ -387,11 +396,13 @@ private fun DdnsItem.run(ip: String) = runBlocking {
     }
 }
 
-private fun DdnsItem.reInit() {
+/**
+ * detect if task need to reinit
+ */
+private fun DdnsItem.detectReInit() {
     this.reInitCount += 1
     if (this.domain.properties!!.reInit != 0 && this.domain.properties!!.reInit!! <= this.reInitCount) {
-        this.inited = false
-        this.reInitCount = 0
+        this.destroy()
     }
 }
 
@@ -478,7 +489,6 @@ private suspend fun DdnsItem.init(): Boolean {
                 }
             }
         }
-
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
         logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
@@ -508,6 +518,19 @@ private fun DdnsItem.init(dnsRecord: DnsRecord) {
 }
 
 /**
+ * destroy DdnsItem information for reinit
+ */
+private fun DdnsItem.destroy() {
+    this.ttl = null
+    this.proxied = null
+    this.content = ""
+    this.id = null
+    this.inited = false
+    this.exists = false
+    this.reInitCount = 0
+}
+
+/**
  * get auth header
  */
 private fun DdnsItem.authHeader(): Map<String, String> {
@@ -516,7 +539,9 @@ private fun DdnsItem.authHeader(): Map<String, String> {
     )
 }
 
-
+/**
+ * ddns task information
+ */
 data class DdnsItem(
     val domain: Domain,
     val type: TYPE
@@ -531,7 +556,6 @@ data class DdnsItem(
 }
 
 enum class TYPE { A, AAAA }
-
 
 val argCommands: List<ArgCommand> = listOf(
     // configuration load
