@@ -262,7 +262,7 @@ suspend fun DdnsItem.doPurge(): Boolean {
         logger.error { cloudflareBody.errors }
         return false
     }
-    logger.info { "purge ${this.domain.name} ${this.type} successful" }
+    logger.info { "purge [${this.domain.name} ${this.type}] successful" }
     return true
 }
 
@@ -452,9 +452,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     val cloudflareBody = httpResponse.body<CloudflareBody<DnsRecord>>()
     if (cloudflareBody.success) {
         if (update) {
-            logger.info { "updated [${ddnsItem.domain.name}] successful" }
+            logger.info { "updated [${ddnsItem.domain.name} ${ddnsItem.type}] successful" }
         } else {
-            logger.info { "created [${ddnsItem.domain.name}] successful" }
+            logger.info { "created [${ddnsItem.domain.name} ${ddnsItem.type}] successful" }
         }
         ddnsItem.init(cloudflareBody.result!!)
     } else {
@@ -468,7 +468,7 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
  * invoke cloudflare api to get current dns record
  */
 private suspend fun DdnsItem.init(): Boolean {
-    logger.info { "init [${this.domain.name} ${this.type}] information" }
+    logger.info { "init [${this.domain.name} ${this.type}] information from cloudflare" }
     val authHeader = this.authHeader()
     val dnsRecords =
         client.get("https://api.cloudflare.com/client/v4/zones/${this.domain.properties!!.zoneId}/dns_records") {

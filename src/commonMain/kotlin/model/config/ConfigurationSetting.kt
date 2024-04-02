@@ -109,7 +109,14 @@ object Config {
                 }
             },
             comment = domainProperties?.comment ?: common.comment ?: "cf-ddns auto update",
-            reInit = domainProperties?.reInit ?: common.reInit ?: (300 / (domainProperties?.ttl ?: common.ttl ?: 300))
+            reInit = domainProperties?.reInit ?: common.reInit ?: run {//
+                val i = 300 / (domainProperties?.ttl ?: common.ttl ?: 300)
+                if (i == 0) {
+                    1
+                } else {
+                    i
+                }
+            }
         )
     }
 
