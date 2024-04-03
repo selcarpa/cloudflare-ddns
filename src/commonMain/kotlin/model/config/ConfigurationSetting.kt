@@ -108,7 +108,7 @@ object Config {
                     ttlCheck
                 }
             },
-            comment = domainProperties?.comment ?: common.comment ?: "cf-ddns auto update",
+            comment = domainProperties?.comment ?: common.comment,
             reInit = domainProperties?.reInit ?: common.reInit ?: run {//
                 val i = 300 / (domainProperties?.ttl ?: common.ttl ?: 300)
                 if (i == 0) {

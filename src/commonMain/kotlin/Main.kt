@@ -9,6 +9,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -434,7 +437,16 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                     ttl = ddnsItem.domain.properties!!.ttl!!,
                     proxied = ddnsItem.domain.properties!!.proxied!!,
                     tags = emptyList(),
-                    comment = ddnsItem.domain.properties!!.comment!!
+                    comment = ddnsItem.domain.properties?.comment?: "cf-ddns auto update at ${run{
+                        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                           return@run "${now.year.toString().padStart(4, '0')}-${
+                                now.monthNumber.toString().padStart(2, '0')
+                            }-${now.dayOfMonth.toString().padStart(2, '0')} ${
+                                now.hour.toString().padStart(2, '0')
+                            }:${now.minute.toString().padStart(2, '0')}:${
+                                now.second.toString().padStart(2, '0')
+                            },${(now.nanosecond / 1000000).toString().padStart(3, '0')}"
+                    }}"
                 )
             )
         )
