@@ -130,7 +130,7 @@ object Config {
                 v4 = v4 ?: true,
                 v6 = v6 ?: false,
                 null,
-                autoPurge = true,
+                autoPurge = false,
                 false,
                 null,
                 ttlCheck = true,
