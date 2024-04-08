@@ -428,28 +428,24 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
             "https://api.cloudflare.com/client/v4/zones/${ddnsItem.domain.properties!!.zoneId}/dns_records/"
         }
     ) {
-        setBody(
-            json.encodeToString(
-                DnsRecordRequest(
-                    type = ddnsItem.type.name,
-                    name = ddnsItem.domain.name,
-                    content = ip,
-                    ttl = ddnsItem.domain.properties!!.ttl!!,
-                    proxied = ddnsItem.domain.properties!!.proxied!!,
-                    tags = emptyList(),
-                    comment = ddnsItem.domain.properties?.comment?: "cf-ddns auto update at ${run{
-                        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                           return@run "${now.year.toString().padStart(4, '0')}-${
-                                now.monthNumber.toString().padStart(2, '0')
-                            }-${now.dayOfMonth.toString().padStart(2, '0')} ${
-                                now.hour.toString().padStart(2, '0')
-                            }:${now.minute.toString().padStart(2, '0')}:${
-                                now.second.toString().padStart(2, '0')
-                            },${(now.nanosecond / 1000000).toString().padStart(3, '0')}"
-                    }}"
-                )
-            )
-        )
+        setBody(json.encodeToString(DnsRecordRequest(type = ddnsItem.type.name,
+            name = ddnsItem.domain.name,
+            content = ip,
+            ttl = ddnsItem.domain.properties!!.ttl!!,
+            proxied = ddnsItem.domain.properties!!.proxied!!,
+            tags = emptyList(),
+            comment = ddnsItem.domain.properties?.comment ?: "cf-ddns auto update at ${
+                run {
+                    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                    return@run "${now.year.toString().padStart(4, '0')}-${
+                        now.monthNumber.toString().padStart(2, '0')
+                    }-${now.dayOfMonth.toString().padStart(2, '0')} ${
+                        now.hour.toString().padStart(2, '0')
+                    }:${now.minute.toString().padStart(2, '0')}:${
+                        now.second.toString().padStart(2, '0')
+                    },${(now.nanosecond / 1000000).toString().padStart(3, '0')}"
+                }
+            }")))
         headers {
             authHeader.forEach {
                 append(it.key, it.value)
@@ -463,10 +459,21 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     }
     val cloudflareBody = httpResponse.body<CloudflareBody<DnsRecord>>()
     if (cloudflareBody.success) {
-        if (update) {
-            logger.info { "updated [${ddnsItem.domain.name} ${ddnsItem.type}] successful" }
-        } else {
-            logger.info { "created [${ddnsItem.domain.name} ${ddnsItem.type}] successful" }
+        logger.info {
+            "${
+                if (update) {
+                    "updated"
+
+                } else {
+                    "created"
+                }
+            } [${ddnsItem.domain.name} ${ddnsItem.type}] successful. ${
+                if (cloudflareBody.result!!.name != ddnsItem.domain.name) {
+                    "But not as expected, expected domain name: ${ddnsItem.domain.name}, actual domain name: ${cloudflareBody.result!!.name}, please check your configuration file. The possible error is that the zone ID is incorrect"
+                } else {
+                    ""
+                }
+            }"
         }
         ddnsItem.init(cloudflareBody.result!!)
     } else {
@@ -555,8 +562,7 @@ private fun DdnsItem.authHeader(): Map<String, String> {
  * ddns task information
  */
 data class DdnsItem(
-    val domain: Domain,
-    val type: TYPE
+    val domain: Domain, val type: TYPE
 ) {
     var id: String? = null
     var ttl: Int? = null
