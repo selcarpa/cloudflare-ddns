@@ -9,6 +9,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -96,6 +99,9 @@ fun main(args: Array<String>) = runBlocking {
     }
 }
 
+/**
+ * just purge all dns record and exit
+ */
 private fun purge() {
     Configuration.domains.forEach { domain ->
         domain.toDDnsItems(true).forEach { ddnsItem ->
@@ -105,6 +111,9 @@ private fun purge() {
     exitGracefully()
 }
 
+/**
+ * exception catch
+ */
 private fun exceptionCatch(e: Exception) {
     if (e is CFDdnsException) {
         exitGracefully()
@@ -116,6 +125,9 @@ private fun exceptionCatch(e: Exception) {
     }
 }
 
+/**
+ * generate configuration
+ */
 private fun gen(args: Array<String>) {
     if (ConfigurationUrl != null) {
         logger.warn { "configuration file is specified, -gen will ignore it" }
@@ -253,7 +265,7 @@ suspend fun DdnsItem.doPurge(): Boolean {
         logger.error { cloudflareBody.errors }
         return false
     }
-    logger.info { "purge ${this.domain.name} ${this.type} successful" }
+    logger.info { "purge [${this.domain.name} ${this.type}] successful" }
     return true
 }
 
@@ -377,7 +389,7 @@ private fun DdnsItem.run(ip: String) = runBlocking {
         logger.info {
             "checked: [${this@run.domain.name} ${this@run.type}] already been resolve to [$ip ${proxiedString(this@run.domain.properties!!.proxied!!)}]"
         }
-        reInit()
+        detectReInit()
         return@runBlocking
     } else {
         logger.info {
@@ -387,12 +399,13 @@ private fun DdnsItem.run(ip: String) = runBlocking {
     }
 }
 
-private fun DdnsItem.reInit() {
+/**
+ * detect if task need to reinit
+ */
+private fun DdnsItem.detectReInit() {
+    this.reInitCount += 1
     if (this.domain.properties!!.reInit != 0 && this.domain.properties!!.reInit!! <= this.reInitCount) {
-        this.inited = false
-        this.reInitCount = 0
-    } else {
-        this.reInitCount += 1
+        this.destroy()
     }
 }
 
@@ -415,19 +428,24 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
             "https://api.cloudflare.com/client/v4/zones/${ddnsItem.domain.properties!!.zoneId}/dns_records/"
         }
     ) {
-        setBody(
-            json.encodeToString(
-                DnsRecordRequest(
-                    type = ddnsItem.type.name,
-                    name = ddnsItem.domain.name,
-                    content = ip,
-                    ttl = ddnsItem.domain.properties!!.ttl!!,
-                    proxied = ddnsItem.domain.properties!!.proxied!!,
-                    tags = emptyList(),
-                    comment = ddnsItem.domain.properties!!.comment!!
-                )
-            )
-        )
+        setBody(json.encodeToString(DnsRecordRequest(type = ddnsItem.type.name,
+            name = ddnsItem.domain.name,
+            content = ip,
+            ttl = ddnsItem.domain.properties!!.ttl!!,
+            proxied = ddnsItem.domain.properties!!.proxied!!,
+            tags = emptyList(),
+            comment = ddnsItem.domain.properties?.comment ?: "cf-ddns auto update at ${
+                run {
+                    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                    return@run "${now.year.toString().padStart(4, '0')}-${
+                        now.monthNumber.toString().padStart(2, '0')
+                    }-${now.dayOfMonth.toString().padStart(2, '0')} ${
+                        now.hour.toString().padStart(2, '0')
+                    }:${now.minute.toString().padStart(2, '0')}:${
+                        now.second.toString().padStart(2, '0')
+                    },${(now.nanosecond / 1000000).toString().padStart(3, '0')}"
+                }
+            }")))
         headers {
             authHeader.forEach {
                 append(it.key, it.value)
@@ -441,10 +459,21 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     }
     val cloudflareBody = httpResponse.body<CloudflareBody<DnsRecord>>()
     if (cloudflareBody.success) {
-        if (update) {
-            logger.info { "updated [${ddnsItem.domain.name}] successful" }
-        } else {
-            logger.info { "created [${ddnsItem.domain.name}] successful" }
+        logger.info {
+            "${
+                if (update) {
+                    "updated"
+
+                } else {
+                    "created"
+                }
+            } [${ddnsItem.domain.name} ${ddnsItem.type}] successful. ${
+                if (cloudflareBody.result!!.name != ddnsItem.domain.name) {
+                    "But not as expected, expected domain name: ${ddnsItem.domain.name}, actual domain name: ${cloudflareBody.result!!.name}, please check your configuration file. The possible error is that the zone ID is incorrect"
+                } else {
+                    ""
+                }
+            }"
         }
         ddnsItem.init(cloudflareBody.result!!)
     } else {
@@ -458,6 +487,7 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
  * invoke cloudflare api to get current dns record
  */
 private suspend fun DdnsItem.init(): Boolean {
+    logger.info { "init [${this.domain.name} ${this.type}] information from cloudflare" }
     val authHeader = this.authHeader()
     val dnsRecords =
         client.get("https://api.cloudflare.com/client/v4/zones/${this.domain.properties!!.zoneId}/dns_records") {
@@ -478,7 +508,6 @@ private suspend fun DdnsItem.init(): Boolean {
                 }
             }
         }
-
     val cloudflareBody = dnsRecords.body<CloudflareBody<List<DnsRecord>>>()
     return if (!cloudflareBody.success) {
         logger.warn { "init information error. try after ${this.domain.properties!!.ttl}" }
@@ -508,6 +537,19 @@ private fun DdnsItem.init(dnsRecord: DnsRecord) {
 }
 
 /**
+ * destroy DdnsItem information for reinit
+ */
+private fun DdnsItem.destroy() {
+    this.ttl = null
+    this.proxied = null
+    this.content = ""
+    this.id = null
+    this.inited = false
+    this.exists = false
+    this.reInitCount = 0
+}
+
+/**
  * get auth header
  */
 private fun DdnsItem.authHeader(): Map<String, String> {
@@ -516,10 +558,11 @@ private fun DdnsItem.authHeader(): Map<String, String> {
     )
 }
 
-
+/**
+ * ddns task information
+ */
 data class DdnsItem(
-    val domain: Domain,
-    val type: TYPE
+    val domain: Domain, val type: TYPE
 ) {
     var id: String? = null
     var ttl: Int? = null
@@ -531,7 +574,6 @@ data class DdnsItem(
 }
 
 enum class TYPE { A, AAAA }
-
 
 val argCommands: List<ArgCommand> = listOf(
     // configuration load
