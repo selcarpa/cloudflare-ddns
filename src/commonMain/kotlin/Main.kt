@@ -443,7 +443,7 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                         now.hour.toString().padStart(2, '0')
                     }:${now.minute.toString().padStart(2, '0')}:${
                         now.second.toString().padStart(2, '0')
-                    },${(now.nanosecond / 1000000).toString().padStart(3, '0')}"
+                    },${(now.nanosecond / 1000000).toString().padStart(3, '0')} ${TimeZone.currentSystemDefault()}"
                 }
             }")))
         headers {
