@@ -12,6 +12,7 @@ plugins {
     kotlin("multiplatform") version "1.9.23"
     id("io.ktor.plugin") version "3.0.0-beta-1"
     kotlin("plugin.serialization") version "1.9.23"
+    id("org.graalvm.buildtools.native") version "0.10.1"
 }
 
 group = "one.tain"
@@ -244,4 +245,24 @@ tasks.register<Exec>("dockerLogin") {
         "-p",
         "${properties["dockerPassword"]}"
     )
+}
+graalvmNative {
+    binaries {
+        named("cf-ddns-graalvm") {
+            imageName.set("cf-ddns-graalvm")
+            mainClass.set("MainKt")
+            buildArgs.add("-O4")
+            buildArgs.add('--add-opens=java.base/java.nio=ALL-UNNAMED')
+            buildArgs.add('--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED')
+            buildArgs.add('--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED')
+            buildArgs.add('--trace-class-initialization=ch.qos.logback.classic.Logger')
+            buildArgs.add('--trace-object-instantiation=ch.qos.logback.core.AsyncAppenderBase$Worker')
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
+    }
+}
+nativeBuild {
+  buildArgs('-H:ReflectionConfigurationFiles=./src/jvmMain/resources/reflection-config.json')
 }
