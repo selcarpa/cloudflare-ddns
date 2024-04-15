@@ -246,23 +246,13 @@ tasks.register<Exec>("dockerLogin") {
         "${properties["dockerPassword"]}"
     )
 }
-graalvmNative {
-    binaries {
-        named("cf-ddns-graalvm") {
-            imageName.set("cf-ddns-graalvm")
-            mainClass.set("MainKt")
-            buildArgs.add("-O4")
-            buildArgs.add('--add-opens=java.base/java.nio=ALL-UNNAMED')
-            buildArgs.add('--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED')
-            buildArgs.add('--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED')
-            buildArgs.add('--trace-class-initialization=ch.qos.logback.classic.Logger')
-            buildArgs.add('--trace-object-instantiation=ch.qos.logback.core.AsyncAppenderBase$Worker')
+graalvmNative{
+    agent {
+        modes {
+            conditional {
+               userCodeFilterPath.set("reflection-config.json")
+            }
         }
+
     }
-    binaries.all {
-        buildArgs.add("--verbose")
-    }
-}
-nativeBuild {
-  buildArgs('-H:ReflectionConfigurationFiles=./src/jvmMain/resources/reflection-config.json')
 }
