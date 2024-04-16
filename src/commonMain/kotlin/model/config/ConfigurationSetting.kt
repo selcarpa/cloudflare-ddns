@@ -32,57 +32,41 @@ private val yaml = Yaml {
 }
 
 object Config {
-    var ConfigurationUrl: String? = null
     val Configuration: ConfigurationSetting
         get() {
-            return if (dynamicConfiguration == null) {
-                _Configuration
-            } else {
-                dynamicConfiguration!!
+            if (Config::dConfiguration.isInitialized) {
+                return dConfiguration
             }
+            throw CFDdnsException("Configuration not initialized, please use '-c' to specify configuration file or '-gen' to generate one")
         }
-    private val _Configuration: ConfigurationSetting by lazy { initConfiguration() }
-    private var dynamicConfiguration: ConfigurationSetting? = null
-        set(value) {
-            field = value
-            field?.propertiesCover()
+    private lateinit var dConfiguration: ConfigurationSetting
+
+    fun initConfiguration(configurationUrl: String) {
+        if (Config::dConfiguration.isInitialized) {
+            throw CFDdnsException("Configuration already initialized by '-gen'")
         }
-
-
-    private fun initConfiguration(): ConfigurationSetting {
-        val configurationSetting = if (ConfigurationUrl.orEmpty().isEmpty()) {
-            printGuideAndThrow()
-        } else {
-            val content = readFile(ConfigurationUrl!!.toPath())
+        val content = readFile(configurationUrl.toPath())
+        dConfiguration =
             when {
-                ConfigurationUrl!!.endsWith("json") || ConfigurationUrl!!.endsWith("json5") -> {
+                configurationUrl.endsWith("json") || configurationUrl.endsWith("json5") -> {
                     json.decodeFromString<ConfigurationSetting>(content)
                 }
 
-                ConfigurationUrl!!.endsWith("toml") -> {
+                configurationUrl.endsWith("toml") -> {
                     toml.decodeFromString(ConfigurationSetting.serializer(), content)
                 }
 
-                ConfigurationUrl!!.endsWith("yml") || ConfigurationUrl!!.endsWith("yaml") -> {
+                configurationUrl.endsWith("yml") || configurationUrl.endsWith("yaml") -> {
                     yaml.decodeFromString(ConfigurationSetting.serializer(), content)
                 }
 
                 else -> {
-                    throw IllegalArgumentException("not supported file type")
+                    throw CFDdnsException("not supported file type")
                 }
             }
 
-        }
-
-        configurationSetting.propertiesCover()
-        return configurationSetting
+        dConfiguration.propertiesCover()
     }
-
-    private fun printGuideAndThrow(): ConfigurationSetting {
-        logger.info { "no configuration file specified, please use \"-c=configfile\" to specify a configuration file" }
-        throw CFDdnsException()
-    }
-
 
     private fun propertiesCover(domain: Domain, common: Properties): Properties {
         val domainProperties = domain.properties
@@ -121,6 +105,10 @@ object Config {
     }
 
     fun genConfiguration(domain: String?, zoneId: String?, authKey: String?, v4: Boolean?, v6: Boolean?) {
+        if (Config::dConfiguration.isInitialized) {
+            logger.info { "Configuration file is specified, cf-ddns will ignore '-gen'" }
+            return
+        }
         val configurationSetting = ConfigurationSetting(
             listOf(Domain(domain!!, null)), Properties(
                 zoneId = zoneId!!,
@@ -144,7 +132,9 @@ object Config {
             )
             logger.info { "configuration file generated at $filePath, next time you can use \"-c=$filePath\" to specify this configuration file" }
         }
-        this.dynamicConfiguration = configurationSetting
+        this.dConfiguration = configurationSetting.also {
+            it.propertiesCover()
+        }
     }
 
     private fun ConfigurationSetting.propertiesCover() {

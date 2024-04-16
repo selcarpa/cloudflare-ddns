@@ -1,3 +1,3 @@
 package exception
 
-class CFDdnsException : RuntimeException()
+class CFDdnsException(message: String) : RuntimeException(message)
