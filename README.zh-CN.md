@@ -50,8 +50,10 @@
    services:
      cf-ddns:
        image: selcarpa/cloudflare-ddns:latest
-       network_mode: "host"
+       # network_mode: "host" # 如果-v6为true，需要使用host网络模式
        container_name: cf-ddns
+        # environment: # 在 cf-ddns 的默认注释中，记录了更新时间，可以在这里设置时区
+        #  - TZ=Asia/Shanghai
        restart: unless-stopped # 重启策略
        command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # 启动命令
    ```
@@ -82,8 +84,10 @@
    services:
      cf-ddns:
        image: selcarpa/cloudflare-ddns-jvm:latest
-       network_mode: "host"
+       # network_mode: "host" # 如果-v6为true，需要使用host网络模式
        container_name: cf-ddns
+        # environment: # 在 cf-ddns 的默认注释中，记录了更新时间，可以在这里设置时区
+        #  - TZ=Asia/Shanghai
        restart: unless-stopped # 重启策略
        command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # 启动命令
    ```
@@ -181,7 +185,7 @@
 | ttlCheck   | 布尔类型 | 否  | 是否启用ttl检查，默认为false                                                                                           |
 | reInit     | 整型数字 | 否  | 多少次任务后，重新进行初始化域名基本信息，默认为300除以ttl值，如果为0则不会重新初始化，在进行该次数的任务之后，重新检查cloudflare上关于此域名的情况，避免由有其他操作删除了该域名，导致无法自动重新新建 |
 
-#### 启动cloudflare-ddns
+#### 通过配置文件启动cloudflare-ddns
 
 ### native版本
 
@@ -199,8 +203,10 @@
      services:
        cf-ddns:
          image: selcarpa/cloudflare-ddns:latest
-         network_mode: "host"
+         # network_mode: "host" # 如果有ipv6的ddns项目，需要使用host网络模式
          container_name: cf-ddns
+         # environment: # 在 cf-ddns 的默认注释中，记录了更新时间，可以在这里设置时区
+         #  - TZ=Asia/Shanghai
          volumes:
            - /path/to/config.json5:/cf-ddn/config.json5  # 挂载配置文件，注意，/path/to/config.json5需要替换为实际路径
          restart: unless-stopped # 重启策略
@@ -222,8 +228,10 @@ java -jar -Xmx30m cf-ddns.jar -c=config.json5
      services:
        cf-ddns:
          image: selcarpa/cloudflare-ddns-jvm:latest
-         network_mode: "host"
+         # network_mode: "host" # 如果有ipv6的ddns项目，需要使用host网络模式
          container_name: cf-ddns
+         # environment: # 在 cf-ddns 的默认注释中，记录了更新时间，可以在这里设置时区
+         #  - TZ=Asia/Shanghai
          volumes:
            - /path/to/config.json5:/cf-ddns/config.json5  # 挂载配置文件，注意，/path/to/config.json5需要替换为实际路径
          restart: unless-stopped # 重启策略

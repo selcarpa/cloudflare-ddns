@@ -7,7 +7,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import net.mamoe.yamlkt.Yaml
 import net.peanuuutz.tomlkt.Toml
 import okio.Path.Companion.toPath
 import utils.readFile
@@ -26,9 +25,6 @@ private val json = Json {
 private val toml = Toml {
     ignoreUnknownKeys = true
     explicitNulls = false
-}
-private val yaml = Yaml {
-
 }
 
 object Config {
@@ -54,10 +50,6 @@ object Config {
 
                 configurationUrl.endsWith("toml") -> {
                     toml.decodeFromString(ConfigurationSetting.serializer(), content)
-                }
-
-                configurationUrl.endsWith("yml") || configurationUrl.endsWith("yaml") -> {
-                    yaml.decodeFromString(ConfigurationSetting.serializer(), content)
                 }
 
                 else -> {
