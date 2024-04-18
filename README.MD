@@ -154,6 +154,62 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
 }
 ```
 
+<details>
+
+<summary>Toml example</summary>
+    
+```toml
+[common]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl= 300
+ttlCheck= true
+checkUrlV4= "https://w4.tain.one/"
+checkUrlV6= "https://w6.tain.one/"
+autoPurge= true
+proxied= true
+comment= "cf-ddns auto update"
+reInit= 5
+
+[[domains]]
+name = "ex1.example.com"
+
+[domains.properties]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl= 300
+ttlCheck= true
+checkUrlV4= "https://w4.tain.one/"
+checkUrlV6= "https://w6.tain.one/"
+autoPurge= true
+proxied= true
+comment= "cf-ddns auto update"
+reInit= 5
+
+[[domains]]
+name = "ex2.example.com"
+
+[domains.properties]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl= 300
+ttlCheck= true
+checkUrlV4= "https://w4.tain.one/"
+checkUrlV6= "https://w6.tain.one/"
+autoPurge= true
+proxied= true
+comment= "cf-ddns auto update"
+reInit= 5
+```
+</details>
+
+
 ##### The top level of the configuration file
 
 | Field name | Type           | Required | Description               |
