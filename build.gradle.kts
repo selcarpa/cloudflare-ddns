@@ -105,7 +105,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation("ch.qos.logback:logback-classic:1.5.3")
+                implementation("ch.qos.logback:logback-classic:1.5.5")
             }
         }
 
@@ -181,7 +181,7 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "-t",
         "selcarpa/cloudflare-ddns:$version",
         "-t",
-        "selcarpa/cloudflare-ddns:snapshot",
+        "selcarpa/cloudflare-ddns:release",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
@@ -213,7 +213,7 @@ tasks.register<Exec>("jvmDockerBuildx") {
         "-t",
         "selcarpa/cloudflare-ddns-jvm:$version",
         "-t",
-        "selcarpa/cloudflare-ddns-jvm:snapshot",
+        "selcarpa/cloudflare-ddns-jvm:release",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
