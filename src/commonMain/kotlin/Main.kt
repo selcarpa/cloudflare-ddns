@@ -258,6 +258,7 @@ suspend fun DdnsItem.doPurge(): Boolean {
         return false
     }
     logger.info { "purge [${this.domain.name} ${this.type}] successful" }
+    this.inited = false
     return true
 }
 
@@ -508,6 +509,9 @@ private suspend fun DdnsItem.init(): Boolean {
         logger.error { cloudflareBody.errors }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {
+        if (cloudflareBody.result!!.size != 1) {
+            logger.warn { "more than one record exists for [${this@init.domain.name}], The first record is currently used" }
+        }
         init(cloudflareBody.result!!.first())
         true
     } else {
