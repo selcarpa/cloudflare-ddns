@@ -181,7 +181,7 @@ tasks.register<Exec>("nativeDockerBuildx") {
         "-t",
         "selcarpa/cloudflare-ddns:$version",
         "-t",
-        "selcarpa/cloudflare-ddns:release",
+        "selcarpa/cloudflare-ddns:snapshot",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
@@ -213,7 +213,7 @@ tasks.register<Exec>("jvmDockerBuildx") {
         "-t",
         "selcarpa/cloudflare-ddns-jvm:$version",
         "-t",
-        "selcarpa/cloudflare-ddns-jvm:release",
+        "selcarpa/cloudflare-ddns-jvm:snapshot",
         "--build-arg",
         "CF_DDNS_VERSION=$version",
         if (properties["release"] == "true") {
