@@ -1,9 +1,9 @@
-name: release-publish
+name: snapshot-publish
 
 on:
   push:
     tags:
-      - '*-RELEASE'
+      - '*-SNAPSHOT'
 
 jobs:
   build:
@@ -38,6 +38,6 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/libs/*.jar,README.MD,build/release1/*-RELEASE.*exe"
+          artifacts: "build/libs/*.jar,README.MD,build/release1/*-SNAPSHOT.*exe"
           token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
+          prerelease: true

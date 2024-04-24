@@ -154,6 +154,62 @@
 }
 ```
 
+<details>
+
+<summary>Toml示例</summary>
+
+```toml
+[common]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl = 300
+ttlCheck = true
+checkUrlV4 = "https://w4.tain.one/"
+checkUrlV6 = "https://w6.tain.one/"
+autoPurge = true
+proxied = true
+comment = "cf-ddns auto update"
+reInit = 5
+
+[[domains]]
+name = "ex1.example.com"
+
+[domains.properties]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl = 300
+ttlCheck = true
+checkUrlV4 = "https://w4.tain.one/"
+checkUrlV6 = "https://w6.tain.one/"
+autoPurge = true
+proxied = true
+comment = "cf-ddns auto update"
+reInit = 5
+
+[[domains]]
+name = "ex2.example.com"
+
+[domains.properties]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl = 300
+ttlCheck = true
+checkUrlV4 = "https://w4.tain.one/"
+checkUrlV6 = "https://w6.tain.one/"
+autoPurge = true
+proxied = true
+comment = "cf-ddns auto update"
+reInit = 5
+```
+
+</details>
+
 ##### 配置文件最顶层
 
 | 字段名     | 类型         | 必填 | 说明   |
