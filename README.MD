@@ -51,8 +51,10 @@ Features provided:
     services:
       cf-ddns:
         image: selcarpa/cloudflare-ddns:latest
-        network_mode: "host"
+        # network_mode: "host" # If -v6 is true, you need to use the host network mode
         container_name: cf-ddns
+        # environment: # In the default comment of cf-ddns, the update time is recorded, and the time zone can be set here
+        #  - TZ=Asia/Shanghai
         restart: unless-stopped # Restart strategy
         command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # Start command
     ```
@@ -82,8 +84,10 @@ Features provided:
     services:
       cf-ddns:
         image: selcarpa/cloudflare-ddns-jvm:latest
-        network_mode: "host"
+        # network_mode: "host" # If -v6 is true, you need to use the host network mode
         container_name: cf-ddns
+        # environment: # In the default comment of cf-ddns, the update time is recorded, and the time zone can be set here
+        #  - TZ=Asia/Shanghai
         restart: unless-stopped # Restart strategy
         command: ["-gen","-zoneId=xxxXXxxXXXxzoneIdxxxXXXx","-authKey=XXXxauthKeyxxxXXXx","-domain=ex.example.com","-v4=true","-v6=false"] # Start command
     ```
@@ -150,6 +154,62 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
 }
 ```
 
+<details>
+
+<summary>Toml example</summary>
+    
+```toml
+[common]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl= 300
+ttlCheck= true
+checkUrlV4= "https://w4.tain.one/"
+checkUrlV6= "https://w6.tain.one/"
+autoPurge= true
+proxied= true
+comment= "cf-ddns auto update"
+reInit= 5
+
+[[domains]]
+name = "ex1.example.com"
+
+[domains.properties]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl= 300
+ttlCheck= true
+checkUrlV4= "https://w4.tain.one/"
+checkUrlV6= "https://w6.tain.one/"
+autoPurge= true
+proxied= true
+comment= "cf-ddns auto update"
+reInit= 5
+
+[[domains]]
+name = "ex2.example.com"
+
+[domains.properties]
+zoneId = "xxxXXxxXXXxzoneIdxxxXXXx"
+authKey = "XXXxauthKeyxxxXXXx"
+v4 = false
+v6 = true
+ttl= 300
+ttlCheck= true
+checkUrlV4= "https://w4.tain.one/"
+checkUrlV6= "https://w6.tain.one/"
+autoPurge= true
+proxied= true
+comment= "cf-ddns auto update"
+reInit= 5
+```
+</details>
+
+
 ##### The top level of the configuration file
 
 | Field name | Type           | Required | Description               |
@@ -181,7 +241,7 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
 | ttlCheck   | Boolean type   | No       | Whether to enable ttl check, the default is false                                                                                                                                                                                                                                                                                                                                            |
 | reInit     | Integer number | No       | After the number of tasks, re-initialize the basic information of the domain name, the default is 300 divided by the TTL value, if it is 0, the reinit-task will not invoke, after the number of tasks, re-check the record of the domain name on Cloudflare, to avoid deleting the domain name due to other operations, resulting in the failure to automatically re-create the domain name |
 
-#### Start cloudflare-ddns
+#### Start cloudflare-ddns via the configuration file
 
 ### native version
 
@@ -199,8 +259,10 @@ The configuration file supports toml and json/json5 formats. Here json5 is used 
     services:
       cf-ddns:
         image: selcarpa/cloudflare-ddns:latest
-        network_mode: "host"
+        # network_mode: "host" If you have an IPv6 DDNS item, you need to use the host network mode
         container_name: cf-ddns
+        # environment: # In the default comment of cf-ddns, the update time is recorded, and the time zone can be set here
+        #  - TZ=Asia/Shanghai
         volumes:
           - /path/to/config.json5:/cf-ddn/config.json5 # Mount the configuration file. Note that /path/to/config.json5 needs to be replaced with the actual path.
         restart: unless-stopped # Restart strategy
@@ -222,8 +284,10 @@ java -jar -Xmx30m cf-ddns.jar -c=config.json5
      services:
        cf-ddns:
          image: selcarpa/cloudflare-ddns-jvm:latest
-         network_mode: "host"
+         # network_mode: "host" If you have an IPv6 DDNS item, you need to use the host network mode
          container_name: cf-ddns
+         # environment: # In the default comment of cf-ddns, the update time is recorded, and the time zone can be set here
+         #  - TZ=Asia/Shanghai
          volumes:
            - /path/to/config.json5:/cf-ddns/config.json5 # Mount the configuration file. Note that /path/to/config.json5 needs to be replaced with the actual path.
          restart: unless-stopped # Restart strategy

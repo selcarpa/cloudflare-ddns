@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.32-SNAPSHOT"
+version = "1.38-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -76,7 +76,6 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
                 implementation("com.squareup.okio:okio:$okio_version")
-                implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
@@ -107,7 +106,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktor_version")
-                implementation("ch.qos.logback:logback-classic:1.5.3")
+                implementation("ch.qos.logback:logback-classic:1.5.5")
             }
         }
 

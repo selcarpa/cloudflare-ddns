@@ -1,4 +1,3 @@
-import exception.CFDdnsException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -16,8 +15,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
-import model.config.Config.ConfigurationUrl
 import model.config.Config.genConfiguration
+import model.config.Config.initConfiguration
 import model.config.Domain
 import model.request.CloudflareBody
 import model.request.DeleteDns
@@ -115,23 +114,16 @@ private fun purge() {
  * exception catch
  */
 private fun exceptionCatch(e: Exception) {
-    if (e is CFDdnsException) {
-        exitGracefully()
-    } else {
-        logger.error(e) {
-            e.message
-        }
-        exitGracefully()
+    logger.error(e) {
+        e.message
     }
+    exitGracefully()
 }
 
 /**
  * generate configuration
  */
 private fun gen(args: Array<String>) {
-    if (ConfigurationUrl != null) {
-        logger.warn { "configuration file is specified, -gen will ignore it" }
-    }
     var zoneId: String? = null
     var authKey: String? = null
     var domain: String? = null
@@ -266,6 +258,7 @@ suspend fun DdnsItem.doPurge(): Boolean {
         return false
     }
     logger.info { "purge [${this.domain.name} ${this.type}] successful" }
+    this.inited = false
     return true
 }
 
@@ -443,7 +436,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                         now.hour.toString().padStart(2, '0')
                     }:${now.minute.toString().padStart(2, '0')}:${
                         now.second.toString().padStart(2, '0')
-                    },${(now.nanosecond / 1000000).toString().padStart(3, '0')} ${TimeZone.currentSystemDefault()}"
+                    },${
+                        (now.nanosecond / 1000000).toString().padStart(3, '0')
+                    } ${TimeZone.currentSystemDefault()}"
                 }
             }")))
         headers {
@@ -514,6 +509,9 @@ private suspend fun DdnsItem.init(): Boolean {
         logger.error { cloudflareBody.errors }
         false
     } else if (cloudflareBody.result!!.isNotEmpty()) {
+        if (cloudflareBody.result!!.size != 1) {
+            logger.warn { "more than one record exists for [${this@init.domain.name}], The first record is currently used" }
+        }
         init(cloudflareBody.result!!.first())
         true
     } else {
@@ -577,7 +575,7 @@ enum class TYPE { A, AAAA }
 
 val argCommands: List<ArgCommand> = listOf(
     // configuration load
-    ArgCommand("-c", { it.startsWith("-c=") }, { ConfigurationUrl = it.replace("-c=", "") }, description = """
+    ArgCommand("-c", { it.startsWith("-c=") }, { initConfiguration(it.replace("-c=", "")) }, description = """
         Set configuration file path, support json/toml/yaml file
     """.trimIndent()
     ), ArgCommand("-debug", { it.startsWith("-debug") }, {
