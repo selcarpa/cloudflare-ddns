@@ -10,17 +10,22 @@ plugins {
     id("io.ktor.plugin") version "3.0.0-beta-1"
     kotlin("plugin.serialization") version "1.9.23"
     application
+    id("org.graalvm.buildtools.native") version "0.10.1"
 }
 
 group = "one.tain"
 version = "1.38-SNAPSHOT"
+
+graalvmNative{
+
+}
 
 repositories {
     mavenCentral()
     google()
 }
 application {
-    mainClass.set("Main")
+    mainClass.set("MainKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -36,8 +41,8 @@ dependencies {
     implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
     implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-    implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("ch.qos.logback:logback-classic:1.5.5")
+    implementation("ch.qos.logback:logback-classic:1.4.1")
+    implementation("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
 }
 
 

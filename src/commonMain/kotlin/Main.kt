@@ -1,12 +1,19 @@
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.Appender
+import ch.qos.logback.core.ConsoleAppender
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.logging.Logger
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -22,6 +29,9 @@ import model.request.CloudflareBody
 import model.request.DeleteDns
 import model.request.DnsRecord
 import model.request.DnsRecordRequest
+import org.slf4j.LoggerFactory
+import java.nio.charset.StandardCharsets
+import kotlin.system.exitProcess
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -50,7 +60,6 @@ private val client by lazy {
         }
         if (debug) {
             install(Logging) {
-                logger = Logger.DEFAULT
                 level = LogLevel.BODY
                 sanitizeHeader { header -> header == HttpHeaders.Authorization }
             }
@@ -58,9 +67,30 @@ private val client by lazy {
     }
 }
 
-expect fun debugLogSet()
+fun debugLogSet() {
+    val logCtx: LoggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
+    val log = logCtx.getLogger(Logger.ROOT_LOGGER_NAME)
+    log.detachAndStopAllAppenders()
+    log.level = ch.qos.logback.classic.Level.DEBUG
+    log.isAdditive = false
+    val logEncoder = PatternLayoutEncoder()
+    logEncoder.context = logCtx
+    logEncoder.pattern = "%date{ISO8601} %highlight(%level) [%t] %cyan(%logger{16}) %M: %msg%n"
+    logEncoder.charset = StandardCharsets.UTF_8
+    logEncoder.start()
 
-expect fun exitGracefully()
+    val logConsoleAppender: ConsoleAppender<ILoggingEvent> = ConsoleAppender<ILoggingEvent>()
+    logConsoleAppender.context = logCtx
+    logConsoleAppender.name = "console"
+    logConsoleAppender.encoder = logEncoder
+    logConsoleAppender.start()
+    log.addAppender(logConsoleAppender as Appender<ILoggingEvent>)
+
+}
+
+fun exitGracefully() {
+    exitProcess(0)
+}
 
 
 /**
@@ -153,7 +183,7 @@ private fun gen(args: Array<String>) {
     genConfiguration(domain, zoneId, authKey, v4, v6)
 }
 
-expect fun logAppenderSet()
+fun logAppenderSet() {}
 
 /**
  * to launch ddns task and purge task
