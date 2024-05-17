@@ -1,5 +1,4 @@
 <configuration>
-    <springProperty scope="context" name="CONSOLE_PATTERN" source="application.console-pattern"/>
     <property name="consoleLogPattern" value="%date{ISO8601} %highlight(%level) [%t] %cyan(%logger{16}) %M: %msg%n"/>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
