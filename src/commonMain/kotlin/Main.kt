@@ -58,11 +58,6 @@ private val client by lazy {
     }
 }
 
-expect fun debugLogSet()
-
-expect fun exitGracefully()
-
-
 /**
  * main function
  */
@@ -152,8 +147,6 @@ private fun gen(args: Array<String>) {
     }
     genConfiguration(domain, zoneId, authKey, v4, v6)
 }
-
-expect fun logAppenderSet()
 
 /**
  * to launch ddns task and purge task
