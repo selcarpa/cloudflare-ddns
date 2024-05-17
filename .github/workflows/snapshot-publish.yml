@@ -42,6 +42,6 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/libs/*.jar,README.MD,build/release1/*-SNAPSHOT.*exe"
+          artifacts: "build/libs/*.jar,README.MD,build/release1/cf-ddns*"
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: true
