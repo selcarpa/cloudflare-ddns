@@ -19,10 +19,9 @@ jobs:
       - name: Enable crossBuild
         run: docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name multi-arch-builder
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up graalvm JDK 17
+        uses: graalvm/setup-graalvm@v1
         with:
-          distribution: 'zulu'
           java-version: '17'
 
       - name: Install cURL Headers
