@@ -160,7 +160,7 @@ tasks.register<Copy>("JarCopyAndCompile") {
 tasks.register<Copy>("graalvmCopy"){
     description = "Copy graalvm native compile package"
     group = taskGroupName
-    from("${buildDir}/libs/")
+    from("${buildDir}/graalvm-build/build/native/nativeCompile/cf-ddns")
     into("${buildDir}/${templeReleasePath}/")
     rename(taskGroupName, "cf-ddns-graalvm-linux-x64-${version}")
 }
