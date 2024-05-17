@@ -31,9 +31,9 @@ jobs:
         shell: bash
         run: |
           ./gradlew github
-      - name: graalvm build
+      - name: graalvm native build
         run: |
-          native-image -jar build/libs/$(ls build/libs -lah | grep .jar | awk '{print $9}') -o build/libs/$(ls build/libs -lah | grep .jar | awk '{print $9}' | sed 's/cf-ddns-jvm/cf-ddns-graalvm-linux-x64/g;s/\.jar$//') --no-fallback
+          cd graalvm-build && ./gradlew nativeCompile
       - name: Print files
         run: |
           tree -hs
