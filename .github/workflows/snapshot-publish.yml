@@ -28,7 +28,11 @@ jobs:
       - name: Install cURL Headers
         run: sudo apt update && sudo apt install libcurl4-openssl-dev tree -y
 
-      - name: Execute with Gradle
+      - name: graalvm native build
+        run: |
+          cd graalvm-build && ./gradlew nativeCompile
+
+      - name: release with Gradle
         shell: bash
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

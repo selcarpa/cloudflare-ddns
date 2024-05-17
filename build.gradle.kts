@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.38-SNAPSHOT"
+version = "1.39-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -157,12 +157,21 @@ tasks.register<Copy>("JarCopyAndCompile") {
     rename("$taskGroupName-jvm-$version", taskGroupName)
 }
 
+tasks.register<Copy>("graalvmCopy"){
+    description = "Copy graalvm native compile package"
+    group = taskGroupName
+    from("${buildDir}/libs/")
+    into("${buildDir}/${templeReleasePath}/")
+    rename(taskGroupName, "cf-ddns-graalvm-linux-x64-${version}")
+}
+
 tasks.register("github") {
     description = "Package all targets"
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
     dependsOn(tasks.getByName("nativeDockerBuildx"))
     dependsOn(tasks.getByName("jvmDockerBuildx"))
+    dependsOn(tasks.getByName("graalvmCopy"))
 }
 
 tasks.register<Exec>("nativeDockerBuildx") {
