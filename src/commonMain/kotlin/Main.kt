@@ -456,9 +456,9 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                     "created"
                 }
             } [${ddnsItem.domain.name} ${ddnsItem.type}] successful."
-            if (cloudflareBody.result!!.name != ddnsItem.domain.name) {
-                logger.warn { "But not as expected, expected domain name: ${ddnsItem.domain.name}, actual domain name: ${cloudflareBody.result!!.name}, please check your configuration file. The possible error is that the zone ID is incorrect" }
-            }
+        }
+        if (cloudflareBody.result!!.name != ddnsItem.domain.name) {
+            logger.warn { "But not as expected, expected domain name: ${ddnsItem.domain.name}, actual domain name: ${cloudflareBody.result!!.name}, please check your configuration file. The possible error is that the zone ID is incorrect" }
         }
         ddnsItem.init(cloudflareBody.result!!)
     } else {
