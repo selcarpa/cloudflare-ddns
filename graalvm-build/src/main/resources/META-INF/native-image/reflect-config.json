@@ -286,6 +286,10 @@
     "fields":[{"name":"_decisionAndIndex"}, {"name":"_parentHandle"}, {"name":"_state"}]
   },
   {
+    "name":"kotlinx.coroutines.CompletedExceptionally",
+    "fields":[{"name":"_handled"}]
+  },
+  {
     "name":"kotlinx.coroutines.EventLoopImplBase",
     "fields":[{"name":"_delayed"}, {"name":"_isCompleted"}, {"name":"_queue"}]
   },
@@ -348,6 +352,14 @@
   {
     "name":"model.request.CloudflareBody$Companion",
     "methods":[{"name":"serializer","parameterTypes":["kotlinx.serialization.KSerializer"] }]
+  },
+  {
+    "name":"model.request.DeleteDns",
+    "fields":[{"name":"Companion"}]
+  },
+  {
+    "name":"model.request.DeleteDns$Companion",
+    "methods":[{"name":"serializer","parameterTypes":[] }]
   },
   {
     "name":"model.request.DnsRecord",
