@@ -35,6 +35,15 @@ jobs:
         shell: bash
         run: |
           ./gradlew github
+
+      - name: Run UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          version: latest
+          files: |
+            ./build/release1/*
+          args: -q
+
       - name: Print files
         run: |
           tree -hs
