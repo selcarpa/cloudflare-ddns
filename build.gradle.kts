@@ -9,7 +9,7 @@ val taskGroupName = "cf-ddns"
 val templeReleasePath = "release1"
 
 plugins {
-    kotlin("multiplatform") version "1.9.24"
+    kotlin("multiplatform") version "2.0.0"
     id("io.ktor.plugin") version "3.0.0-beta-1"
     kotlin("plugin.serialization") version "1.9.24"
 }
