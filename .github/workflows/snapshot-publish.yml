@@ -39,7 +39,16 @@ jobs:
         run: | 
           ./gradlew -PdockerUserName="$DOCKER_USERNAME" -PdockerPassword="$DOCKER_PASSWORD" -Prelease="true" github
 
+      - name: Run UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          version: latest
+          files: |
+            ./build/release1/*
+          args: -q
+
       - uses: ncipollo/release-action@v1
+        name: release files
         with:
           artifacts: "build/libs/*.jar,README.MD,build/release1/cf-ddns*"
           token: ${{ secrets.GITHUB_TOKEN }}
