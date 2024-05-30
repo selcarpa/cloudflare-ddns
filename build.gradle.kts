@@ -7,6 +7,7 @@ val okio_version: String by project
 val kotlin_logging_version: String by project
 val taskGroupName = "cf-ddns"
 val templeReleasePath = "release1"
+val version_string: String by project
 
 plugins {
     kotlin("multiplatform") version "2.0.0"
@@ -15,7 +16,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.44-SNAPSHOT"
+version = version_string
 
 repositories {
     mavenCentral()
@@ -148,7 +149,7 @@ tasks.register<Copy>("mingwX64CopyAndCompile") {
     rename(taskGroupName, "cf-ddns-windows-x64-${version}")
 }
 
-tasks.register<Copy>("graalvmCopy"){
+tasks.register<Copy>("graalvmCopy") {
     description = "Copy graalvm native compile package"
     group = taskGroupName
     from("${buildDir}/../graalvm-build/build/native/nativeCompile/cf-ddns")

@@ -4,6 +4,7 @@ val okio_version: String by project
 val kotlin_logging_version: String by project
 val taskGroupName = "cf-ddns"
 val templeReleasePath = "release1"
+val version_string: String by project
 
 plugins {
     kotlin("jvm") version "1.9.23"
@@ -14,7 +15,7 @@ plugins {
 }
 
 group = "one.tain"
-version = "1.38-SNAPSHOT"
+version = version_string
 
 graalvmNative{
     binaries.all {

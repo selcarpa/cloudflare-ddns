@@ -6,7 +6,7 @@ on:
       - '*-SNAPSHOT'
 
 jobs:
-  build:
+  run-build-on-ubuntu:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -46,6 +46,43 @@ jobs:
           files: |
             ./build/release1/*
           args: -q
+
+      - uses: ncipollo/release-action@v1
+        name: release files
+        with:
+          artifacts: "build/libs/*.jar,README.MD,build/release1/cf-ddns*"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
+
+  run-build-on-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout
+
+      - name: Set up graalvm JDK 17
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+
+      - name: graalvm native build
+        run: |
+          cd graalvm-build && ./gradlew nativeCompileAndCopy
+
+      - name: Run UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          version: latest
+          files: |
+            ./build/release1/*
+          args: -q
+
+      - name: Print files
+        run: |
+          tree
 
       - uses: ncipollo/release-action@v1
         name: release files
