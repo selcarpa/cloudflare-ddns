@@ -53,8 +53,12 @@ tasks.register<Copy>("nativeCompileAndCopy") {
     description = "native copile and copy"
     group = taskGroupName
     dependsOn(tasks.getByName("nativeCompile"))
-    from("${buildDir}/build/native/nativeCompile/cf-ddns.exe")
-    into("${buildDir}/../../build/${templeReleasePath}/")
+    from("${buildDir}/native/nativeCompile/cf-ddns.exe")
+    val path = "${buildDir}/../../build/${templeReleasePath}/"
+    if (!File(path).exists()) {
+        File(path).mkdirs()
+    }
+    into(path)
     rename(taskGroupName, "cf-ddns-graalvm-windows-x64-${version}")
 }
 
