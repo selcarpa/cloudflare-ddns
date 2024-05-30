@@ -49,4 +49,12 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
 }
 
+tasks.register<Copy>("nativeCompileAndCopy") {
+    description = "native copile and copy"
+    group = taskGroupName
+    dependsOn(tasks.getByName("nativeCompile"))
+    from("${buildDir}/build/native/nativeCompile/cf-ddns.exe")
+    into("${buildDir}/../../build/${templeReleasePath}/")
+    rename(taskGroupName, "cf-ddns-graalvm-windows-x64-${version}")
+}
 

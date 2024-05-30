@@ -148,15 +148,6 @@ tasks.register<Copy>("mingwX64CopyAndCompile") {
     rename(taskGroupName, "cf-ddns-windows-x64-${version}")
 }
 
-tasks.register<Copy>("JarCopyAndCompile") {
-    description = "Copy and compile jar"
-    group = taskGroupName
-    dependsOn(tasks.getByName("jvmJar"))
-    from("${buildDir}/libs/")
-    into("${buildDir}/${templeReleasePath}/")
-    rename("$taskGroupName-jvm-$version", taskGroupName)
-}
-
 tasks.register<Copy>("graalvmCopy"){
     description = "Copy graalvm native compile package"
     group = taskGroupName

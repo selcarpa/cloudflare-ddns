@@ -57,10 +57,6 @@ jobs:
       - uses: actions/checkout@v4
         name: checkout
 
-      - name: Print files
-        run: |
-          tree
-
       - name: Set up graalvm JDK 17
         uses: graalvm/setup-graalvm@v1
         with:
@@ -68,7 +64,7 @@ jobs:
 
       - name: graalvm native build
         run: |
-          cd graalvm-build && ./gradlew nativeCompile
+          cd graalvm-build && ./gradlew nativeCompileAndCopy
 
       - name: Run UPX
         uses: crazy-max/ghaction-upx@v3
