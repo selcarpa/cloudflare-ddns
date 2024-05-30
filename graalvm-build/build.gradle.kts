@@ -17,7 +17,11 @@ group = "one.tain"
 version = "1.38-SNAPSHOT"
 
 graalvmNative{
-
+    binaries.all {
+        buildArgs.add("--gc=G1")
+        buildArgs.add("-Ob")
+        buildArgs.add("-march=native")
+    }
 }
 
 repositories {
