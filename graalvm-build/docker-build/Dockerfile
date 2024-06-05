@@ -1,8 +1,12 @@
 FROM debian:stable-slim AS builder
 WORKDIR /cf-ddns-build/
-ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ENV TARGETOS=$TARGETOS
+ENV TARGETARCH=$TARGETARCH
 
 COPY docker-entrypoint.sh /cf-ddns-build/docker-entrypoint.sh
+COPY ../../graalvm-build/ /cf-ddns-build/cloudflare-ddns/graalvm-build/
 
 ENTRYPOINT ["/cf-ddns-build/docker-entrypoint.sh"]
 

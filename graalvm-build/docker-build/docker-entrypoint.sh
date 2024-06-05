@@ -1,17 +1,25 @@
 #!/bin/bash
 
-# check arguments
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <os> <arch>"
-    exit 1
-fi
+os=$TARGETOS
+arch=$TARGETARCH
 
-os=$1
-arch=$2
+# convert arch to graalvm supported arch
+case $arch in
+    amd64)
+        arch="x64"
+        ;;
+    arm64)
+        arch="aarch64"
+        ;;
+    *)
+        echo "Unsupported architecture: $arch"
+        exit 1
+        ;;
+esac
 
 # install necessary packages
-sudo apt-get update
-sudo apt-get install build-essential zlib1g-dev curl git -y
+apt-get update
+apt-get install build-essential zlib1g-dev curl -y
 
 # graalvm download url
 downloadUrl="https://download.oracle.com/graalvm/17/latest/graalvm-jdk-17_${os}-${arch}_bin.tar.gz"
@@ -48,8 +56,6 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 # check java version
 java -version
-
-git clone https://github.com/selcarpa/cloudflare-ddns
 
 cd cloudflare-ddns/graalvm-build
 

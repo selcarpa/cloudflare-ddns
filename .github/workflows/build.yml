@@ -44,6 +44,10 @@ jobs:
             ./build/release1/*
           args: -q
 
+      - name: run graalvm native docker build
+        run: |
+          cd graalvm-build/docker-build/ && docker buildx build --platform linux/amd64,linux/arm64 -t selcarpa/cloudflare-ddns-graalvm-native .
+
       - name: Print files
         run: |
           tree -hs
