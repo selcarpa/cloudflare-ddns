@@ -27,10 +27,6 @@ jobs:
       - name: Install cURL Headers
         run: sudo apt update && sudo apt install libcurl4-openssl-dev tree -y
 
-      - name: graalvm native build
-        run: |
-          cd graalvm-build && ./gradlew nativeCompile
-
       - name: Build with Gradle
         shell: bash
         run: |
@@ -44,15 +40,11 @@ jobs:
             ./build/release1/*
           args: -q
 
-      - name: run graalvm native docker build
-        run: |
-          cd graalvm-build/docker-build/ && docker buildx build --platform linux/amd64,linux/arm64 -t selcarpa/cloudflare-ddns-graalvm-native .
-
       - name: Print files
         run: |
           tree -hs
 
-  run-build-on-windows:
+  run-graalvm-build-on-windows:
     runs-on: windows-latest
     permissions:
       contents: write
@@ -81,3 +73,48 @@ jobs:
       - name: Print files
         run: |
           tree
+
+  run-graalvm-build-on-ubuntu:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout
+
+      - name: Set up graalvm JDK 17
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+
+      - name: graalvm native build
+        run: |
+          cd graalvm-build && ./gradlew nativeCompileAndCopy
+
+      - name: Run UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          version: latest
+          files: |
+            ./build/release1/*
+          args: -q
+
+      - name: Print files
+        run: |
+          tree -hs
+
+  run-graalvm-docker-build-on-ubuntu:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout
+
+      - name: Enable crossBuild
+        run: docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name multi-arch-builder
+
+      - name: run graalvm native docker build
+        run: |
+            cd graalvm-build/docker-build/ && docker buildx build --platform linux/amd64,linux/arm64 -t selcarpa/cloudflare-ddns-graalvm-native .

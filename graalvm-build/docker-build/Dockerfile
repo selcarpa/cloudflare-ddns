@@ -6,7 +6,7 @@ ENV TARGETOS=$TARGETOS
 ENV TARGETARCH=$TARGETARCH
 
 COPY docker-entrypoint.sh /cf-ddns-build/docker-entrypoint.sh
-COPY ../../graalvm-build/ /cf-ddns-build/cloudflare-ddns/graalvm-build/
+COPY ../../../graalvm-build/ /cf-ddns-build/cloudflare-ddns/
 
 ENTRYPOINT ["/cf-ddns-build/docker-entrypoint.sh"]
 
