@@ -5,12 +5,10 @@ ARG TARGETARCH
 ENV TARGETOS=$TARGETOS
 ENV TARGETARCH=$TARGETARCH
 
-COPY docker-entrypoint.sh /cf-ddns-build/docker-entrypoint.sh
+COPY build.sh /cf-ddns-build/build.sh
 COPY ../../ /cf-ddns-build/cloudflare-ddns/
 
-ENTRYPOINT ["/cf-ddns-build/docker-entrypoint.sh"]
-
-CMD ["sh"]
+RUN sh build.sh
 
 FROM debian:stable-slim
 WORKDIR /cf-ddns/
