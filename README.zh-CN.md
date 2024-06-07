@@ -10,8 +10,9 @@
 
 项目提供：
 
-1. native版本（含docker支持），支持Windows(x86)、Linux(x86)~~、Linux(Arm)等待依赖更新中~~
-2. java版本（含docker支持），支持jvm-17兼容平台
+1. native版本（含docker支持），支持Windows(x64)、Linux(x64)~~、Linux(Arm)等待依赖更新中~~
+2. graalvm版本（含docker支持），支持Windows(x64)、Linux(x64)、Linux(Arm64)
+3. java版本（含docker支持），支持jvm-17兼容平台
 
 功能提供：
 

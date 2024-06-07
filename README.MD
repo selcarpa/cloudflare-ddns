@@ -12,8 +12,9 @@ This is a simple application for updating the current public IP address to Cloud
 
 The project provides:
 
-1. Native version (including docker support), supports Windows (x86), Linux (x86)~~, Linux (Arm), waiting for dependency updates~~
-2. Java version (including docker support), supports jvm-17 compatible platform
+1. Native version (including docker support), supports Windows (x64), Linux (x64)~~, Linux (Arm), waiting for dependency updates~~
+2. graalvm version (including docker support), supports Windows (x64), Linux (x64), Linux (Arm64)
+3. Java version (including docker support), supports jvm-17 compatible platform
 
 Features provided:
 
