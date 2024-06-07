@@ -5,8 +5,8 @@ ARG TARGETARCH
 ENV TARGETOS=$TARGETOS
 ENV TARGETARCH=$TARGETARCH
 
-COPY build.sh /cf-ddns-build/build.sh
-COPY ../../ /cf-ddns-build/cloudflare-ddns/
+COPY ./graalvm-build/docker-build/build.sh /cf-ddns-build/build.sh
+COPY ./ /cf-ddns-build/cloudflare-ddns/
 
 RUN sh build.sh
 
