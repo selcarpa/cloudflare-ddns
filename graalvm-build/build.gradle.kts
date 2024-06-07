@@ -60,7 +60,7 @@ tasks.register<Copy>("nativeCompileAndCopy") {
         File(path).mkdirs()
     }
     into(path)
-    val osName = System.getProperty("os.name")
+    val osName = System.getProperty("os.name").lowercase()
 
     rename(
         taskGroupName, "cf-ddns-graalvm-${
