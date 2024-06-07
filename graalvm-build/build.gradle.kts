@@ -54,13 +54,23 @@ tasks.register<Copy>("nativeCompileAndCopy") {
     description = "native copile and copy"
     group = taskGroupName
     dependsOn(tasks.getByName("nativeCompile"))
-    from("${buildDir}/native/nativeCompile/cf-ddns.exe")
+    val osName = System.getProperty("os.name").lowercase()
+
+
+    from("${buildDir}/native/nativeCompile/${
+        if (osName.indexOf("windows") >= 0) {
+            "cf-ddns.exe"
+        } else if (osName.indexOf("linux") >= 0) {
+            "cf-ddns"
+        } else {
+            throw Exception("not support os")
+        }
+    }")
     val path = "${buildDir}/../../build/${templeReleasePath}/"
     if (!File(path).exists()) {
         File(path).mkdirs()
     }
     into(path)
-    val osName = System.getProperty("os.name").lowercase()
 
     rename(
         taskGroupName, "cf-ddns-graalvm-${
@@ -75,4 +85,6 @@ tasks.register<Copy>("nativeCompileAndCopy") {
         }-x64-${version}"
     )
 }
+
+
 
