@@ -170,9 +170,6 @@ tasks.register<Exec>("nativeDockerBuildx") {
     description = "Build and push native docker images"
     group = taskGroupName
     dependsOn(tasks.getByName("multPackage"))
-    if (properties["release"] == "true") {
-        dependsOn(tasks.getByName("dockerLogin"))
-    }
     val arguments = listOfNotNull(
         "docker",
         "buildx",
@@ -202,9 +199,6 @@ tasks.register<Exec>("jvmDockerBuildx") {
     description = "Build and push jvm docker images"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-    if (properties["release"] == "true") {
-        dependsOn(tasks.getByName("dockerLogin"))
-    }
     val arguments = listOfNotNull(
         "docker",
         "buildx",
@@ -233,15 +227,3 @@ tasks.register<Exec>("jvmDockerBuildx") {
     )
 }
 
-tasks.register<Exec>("dockerLogin") {
-    description = "Login to docker hub"
-    group = taskGroupName
-    commandLine(
-        "docker",
-        "login",
-        "-u",
-        "${properties["dockerUserName"]}",
-        "-p",
-        "${properties["dockerPassword"]}"
-    )
-}

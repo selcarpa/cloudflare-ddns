@@ -27,13 +27,13 @@ jobs:
       - name: Install cURL Headers
         run: sudo apt update && sudo apt install libcurl4-openssl-dev tree -y
 
+      - name: docker login
+        run: echo '${{ secrets.DOCKER_PASSWORD }}' | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
       - name: release with Gradle
         shell: bash
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: | 
-          ./gradlew -PdockerUserName="$DOCKER_USERNAME" -PdockerPassword="$DOCKER_PASSWORD" -Prelease="true" github
+          ./gradlew -Prelease="true" github
 
       - name: Run UPX
         uses: crazy-max/ghaction-upx@v3
@@ -111,9 +111,13 @@ jobs:
             ./build/release1/*
           args: -q
 
-      - name: Print files
-        run: |
-          tree -hs
+      - uses: ncipollo/release-action@v1
+        name: release files
+        with:
+          artifacts: "build/release1/cf-ddns*"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
+          allowUpdates: true
 
   run-graalvm-docker-build-on-ubuntu:
     runs-on: ubuntu-latest
@@ -127,7 +131,7 @@ jobs:
         run: docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name multi-arch-builder
 
       - name: docker login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: echo '${{ secrets.DOCKER_PASSWORD }}' | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: run graalvm native docker build
         run: |
