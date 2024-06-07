@@ -14,6 +14,6 @@ FROM debian:stable-slim
 WORKDIR /cf-ddns/
 ARG TARGETPLATFORM
 
-COPY --from=builder /cf-ddns-build/cloudflare-ddns/graalvm-build/build/nativeCompile/cf-ddns /cf-ddns/cf-ddns
+COPY --from=builder /cf-ddns-build/cloudflare-ddns/graalvm-build/build/native/nativeCompile/cf-ddns /cf-ddns/cf-ddns
 
 ENTRYPOINT  ["/cf-ddns/cf-ddns"]
