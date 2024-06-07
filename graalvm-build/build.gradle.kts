@@ -17,7 +17,7 @@ plugins {
 group = "one.tain"
 version = version_string
 
-graalvmNative{
+graalvmNative {
     binaries.all {
 //        buildArgs.add("--gc=G1")
         buildArgs.add("-Ob")
@@ -60,6 +60,19 @@ tasks.register<Copy>("nativeCompileAndCopy") {
         File(path).mkdirs()
     }
     into(path)
-    rename(taskGroupName, "cf-ddns-graalvm-windows-x64-${version}")
+    val osName = System.getProperty("os.name")
+
+    rename(
+        taskGroupName, "cf-ddns-graalvm-${
+            if (osName.indexOf("windows") >= 0) {
+                "windows"
+
+            } else if (osName.indexOf("linux") >= 0) {
+                "linux"
+            } else {
+                throw Exception("not support os")
+            }
+        }-x64-${version}"
+    )
 }
 
