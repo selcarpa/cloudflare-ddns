@@ -73,7 +73,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
