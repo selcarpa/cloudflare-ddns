@@ -5,6 +5,7 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val okio_version: String by project
 val kotlin_logging_version: String by project
+val tomlkt_version: String by project
 val taskGroupName = "cf-ddns"
 val templeReleasePath = "release1"
 val version_string: String by project
@@ -73,12 +74,12 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
                 implementation("com.squareup.okio:okio:$okio_version")
-                implementation("net.peanuuutz.tomlkt:tomlkt:0.3.7")
+                implementation("net.peanuuutz.tomlkt:tomlkt:$tomlkt_version")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
             }
         }
 
