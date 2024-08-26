@@ -13,7 +13,7 @@ val version_string: String by project
 plugins {
     kotlin("multiplatform") version "2.0.0"
     id("io.ktor.plugin") version "3.0.0-beta-1"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.20"
 }
 
 group = "one.tain"
