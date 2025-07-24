@@ -8,11 +8,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.config.Config.Configuration
 import model.config.Config.genConfiguration
@@ -22,8 +21,10 @@ import model.request.CloudflareBody
 import model.request.DeleteDns
 import model.request.DnsRecord
 import model.request.DnsRecordRequest
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
 
 private val logger = KotlinLogging.logger {}
@@ -405,6 +406,7 @@ private fun proxiedString(proxied: Boolean) = if (proxied) "proxied" else {
 /**
  * invoke cloudflare api to create or update dns record
  */
+@OptIn(ExperimentalTime::class)
 suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
     val authHeader = ddnsItem.authHeader()
     val httpResponse = client.request(
@@ -424,8 +426,8 @@ suspend fun updateDns(ip: String, ddnsItem: DdnsItem, update: Boolean = false) {
                 run {
                     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                     return@run "${now.year.toString().padStart(4, '0')}-${
-                        now.monthNumber.toString().padStart(2, '0')
-                    }-${now.dayOfMonth.toString().padStart(2, '0')} ${
+                        now.month.number.toString().padStart(2, '0')
+                    }-${now.day.toString().padStart(2, '0')} ${
                         now.hour.toString().padStart(2, '0')
                     }:${now.minute.toString().padStart(2, '0')}:${
                         now.second.toString().padStart(2, '0')

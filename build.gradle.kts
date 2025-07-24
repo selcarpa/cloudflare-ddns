@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.Executable
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 val ktor_version: String by project
-val kotlin_version: String by project
 val okio_version: String by project
 val kotlin_logging_version: String by project
 val tomlkt_version: String by project
@@ -11,9 +10,9 @@ val templeReleasePath = "release1"
 val version_string: String by project
 
 plugins {
-    kotlin("multiplatform") version "2.0.0"
-    id("io.ktor.plugin") version "3.0.0-beta-1"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("multiplatform") version "2.2.0"
+    id("io.ktor.plugin") version "3.2.2"
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 group = "one.tain"
@@ -44,9 +43,9 @@ kotlin {
     linuxX64 {
         config()
     }
-//    linuxArm64 {
-//        config()
-//    }
+    linuxArm64 {
+        config()
+    }
     mingwX64 {
         config()
     }
@@ -74,12 +73,12 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:$ktor_version")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
                 implementation("io.ktor:ktor-client-logging:$ktor_version")
                 implementation("com.squareup.okio:okio:$okio_version")
                 implementation("net.peanuuutz.tomlkt:tomlkt:$tomlkt_version")
                 implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
             }
         }
 
@@ -118,7 +117,7 @@ tasks.register("multPackage") {
     description = "Package all targets"
     group = taskGroupName
     dependsOn(tasks.getByName("jvmJar"))
-//    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
+    dependsOn(tasks.getByName("linuxArm64CopyAndCompile"))
     dependsOn(tasks.getByName("linuxX64CopyAndCompile"))
     dependsOn(tasks.getByName("mingwX64CopyAndCompile"))
 }
