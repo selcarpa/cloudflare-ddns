@@ -135,5 +135,4 @@ jobs:
 
       - name: run graalvm native docker build
         run: |
-#          docker buildx build --platform linux/amd64,linux/arm64 -t selcarpa/cloudflare-ddns-graalvm-native -f graalvm-build/docker-build/Dockerfile . --push
-          docker buildx build --platform linux/arm64 -t selcarpa/cloudflare-ddns-graalvm-native -f graalvm-build/docker-build/Dockerfile . --push
+          docker buildx build --platform linux/amd64 -t selcarpa/cloudflare-ddns-graalvm-native -f graalvm-build/docker-build/Dockerfile . --push
