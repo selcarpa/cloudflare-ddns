@@ -46,7 +46,7 @@ dependencies {
     implementation("com.squareup.okio:okio:$okio_version")
     implementation("net.peanuuutz.tomlkt:tomlkt:$tomlkt_version")
     implementation("io.github.oshai:kotlin-logging:$kotlin_logging_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
     implementation("ch.qos.logback:logback-classic:1.4.1")
     implementation("io.ktor:ktor-client-okhttp-jvm:$ktor_version")
 }
